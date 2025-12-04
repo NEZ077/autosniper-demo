@@ -3,156 +3,220 @@ import pandas as pd
 import plotly.express as px
 import os
 
-# --- CONFIGURATION PAGE ---
+# --- CONFIGURATION (La Truffe Branding) ---
 st.set_page_config(
-    page_title="AutoSniper Elite",
-    page_icon="💎",
+    page_title="La Truffe",
+    page_icon="💎", # Ou 🍄 si tu préfères le côté littéral
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- STYLE CSS (Dark & Gold) ---
+# --- CSS LUXURY / DARK MODE ---
 st.markdown("""
 <style>
-    .stApp {background-color: #0e1117;}
-    div[data-testid="stMetric"] {
-        background-color: #1f2937;
-        border: 1px solid #374151;
-        padding: 10px;
-        border-radius: 8px;
+    /* Import de police élégante (Google Fonts) */
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap');
+
+    /* FOND GÉNÉRAL */
+    .stApp {
+        background-color: #0a0a0a; /* Noir très profond */
+        color: #e0e0e0;
+        font-family: 'Lato', sans-serif;
     }
-    .big-font {font-size:20px !important; font-weight: bold;}
+    
+    /* TITRES */
+    h1, h2, h3 {
+        font-family: 'Playfair Display', serif; /* Police type "Luxe" */
+        color: #d4af37 !important; /* Couleur OR */
+        font-weight: 700;
+    }
+    
+    /* SIDEBAR */
+    section[data-testid="stSidebar"] {
+        background-color: #111111;
+        border-right: 1px solid #333;
+    }
+    
+    /* CARTES VOITURES (Style Carte de Crédit Black) */
+    .truffle-card {
+        background: linear-gradient(145deg, #1a1a1a, #141414);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid #333;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.7);
+        transition: all 0.3s ease;
+    }
+    .truffle-card:hover {
+        border-color: #d4af37; /* Bordure Or au survol */
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(212, 175, 55, 0.15); /* Ombre dorée légère */
+    }
+    
+    /* PRIX & BADGES */
+    .price-gold {
+        font-family: 'Playfair Display', serif;
+        font-size: 26px;
+        color: #d4af37;
+        font-weight: bold;
+    }
+    .badge-rare {
+        background-color: rgba(212, 175, 55, 0.15); /* Fond or transparent */
+        border: 1px solid #d4af37;
+        color: #d4af37;
+        padding: 5px 12px;
+        border-radius: 50px;
+        font-size: 11px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        float: right;
+    }
+    .badge-standard {
+        background-color: #222;
+        color: #666;
+        padding: 5px 12px;
+        border-radius: 50px;
+        font-size: 11px;
+        float: right;
+    }
+
+    /* BOUTON */
+    .stButton button {
+        background-color: transparent;
+        border: 1px solid #d4af37;
+        color: #d4af37;
+        border-radius: 4px;
+        transition: 0.3s;
+    }
+    .stButton button:hover {
+        background-color: #d4af37;
+        color: black;
+        border-color: #d4af37;
+    }
+
+    /* KPI BOXES */
+    div[data-testid="stMetric"] {
+        background-color: #111;
+        border: 1px solid #222;
+        border-radius: 0px; /* Carré pour faire sérieux */
+        border-left: 3px solid #d4af37; /* Petite touche or */
+    }
+    label[data-testid="stMetricLabel"] {
+        font-size: 14px;
+        color: #888;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# --- CHARGEMENT ---
-@st.cache_data(ttl=900) # Mise à jour toutes les 15 min
+# --- CHARGEMENT DONNÉES ---
+@st.cache_data
 def charger_donnees():
-    if not os.path.exists("annonces.csv"):
-        return pd.DataFrame()
+    if not os.path.exists("annonces.csv"): return pd.DataFrame()
     df = pd.read_csv("annonces.csv")
     
-    # Conversion types
-    df['prix'] = pd.to_numeric(df['prix'], errors='coerce')
-    df['km'] = pd.to_numeric(df['km'], errors='coerce')
-    df['annee'] = pd.to_numeric(df['annee'], errors='coerce')
+    cols = ['prix', 'cote_argus', 'km', 'annee']
+    for c in cols: df[c] = pd.to_numeric(df[c], errors='coerce')
     
-    # --- CALCUL SCORE DEAL (Intelligence Artificielle Simulée) ---
-    def analyser_deal(row):
-        # On refait une estimation simplifiée pour la démo
-        # Dans la vraie vie, ce serait une requête API Argus
-        base_price = row['prix']
-        # On estime que la "valeur réelle" est basée sur le prix moyen des modèles similaires dans la base
-        # Ici on triche un peu pour la démo : on utilise une formule inverse du générateur
-        
-        # Score de 0 à 100.
-        # Plus le rapport (KM / Prix) est avantageux par rapport à l'année, mieux c'est.
-        score = 50 # Neutre
-        
-        # Bonus Année
-        if row['annee'] >= 2022: score += 10
-        
-        # Logique Prix : Si c'est une Porsche à 20k, c'est louche ou génial.
-        # Pour la simulation, on va simuler un score aléatoire cohérent avec le générateur
-        import random
-        random.seed(row['id']) # Pour que le score reste fixe pour une même voiture
-        
-        # On booste les scores pour que l'interface soit jolie
-        score_final = random.randint(40, 95)
-        
-        label = "Standard"
-        if score_final >= 85: label = "💎 PÉPITE"
-        elif score_final >= 70: label = "✅ Bon coup"
-        elif score_final <= 50: label = "❌ Trop cher"
-            
-        return score_final, label
+    # Algo "Le Flair"
+    def flairer_truffe(row):
+        # Calcul de la différence avec la cote
+        diff = row['cote_argus'] - row['prix']
+        # Score de "Rareté" (0 à 100)
+        score = 50 + ((diff / row['cote_argus']) * 200)
+        return min(100, max(0, int(score))), int(diff)
 
-    res = df.apply(analyser_deal, axis=1, result_type='expand')
+    res = df.apply(flairer_truffe, axis=1, result_type='expand')
     df['score'] = res[0]
-    df['label'] = res[1]
+    df['gain'] = res[1]
     
-    return df.sort_values(by='score', ascending=False)
+    return df
 
 df = charger_donnees()
 
-# --- SIDEBAR ---
+# --- SIDEBAR (Le Menu du Chef) ---
 with st.sidebar:
-    st.title("💎 AutoSniper Elite")
-    st.caption("Market Scanner v3.0")
+    # TITRE LOGO
+    st.markdown("<h1 style='text-align: center; color: #d4af37;'>LA TRUFFE</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; font-style: italic; font-size: 12px; color: #666;'>Le flair de l'investisseur.</p>", unsafe_allow_html=True)
     
-    if st.button("🔄 Reload Data"):
-        st.cache_data.clear()
-        st.rerun()
+    st.write("") # Espace
     
-    st.divider()
+    if st.button("👃 Flairer le marché", use_container_width=True):
+        st.cache_data.clear(); st.rerun()
+    
+    st.write("---")
     
     # Filtres
-    if not df.empty:
-        marques = sorted(list(set([t.split(' ')[0] for t in df['titre']])))
-        sel_marque = st.multiselect("Marque", marques)
+    marques = ["Toutes"] + sorted(df['marque'].unique().tolist())
+    f_marque = st.selectbox("Marque", marques)
+    
+    f_modele = "Tous"
+    if f_marque != "Toutes":
+        modeles = ["Tous"] + sorted(df[df['marque'] == f_marque]['modele'].unique().tolist())
+        f_modele = st.selectbox("Modèle", modeles)
         
-        range_prix = st.slider("Budget", 5000, 150000, (10000, 80000))
-        
-        filtre_pepite = st.checkbox("💎 Afficher uniquement les Pépites")
+    st.write("")
+    budget = st.slider("Budget Investissement", 10000, 200000, 80000, step=5000)
+    
+    st.write("---")
+    pepite_only = st.checkbox("💎 Afficher uniquement les raretés")
 
 # --- FILTRAGE ---
-if df.empty:
-    st.warning("⚠️ Base de données vide. Lancez la simulation.")
-    st.stop()
+if df.empty: st.error("Base de données vide."); st.stop()
 
-df_f = df.copy()
-if sel_marque:
-    df_f = df_f[df_f['titre'].apply(lambda x: any(m in x for m in sel_marque))]
-df_f = df_f[(df_f['prix'] >= range_prix[0]) & (df_f['prix'] <= range_prix[1])]
+mask = (df['prix'] <= budget)
+if f_marque != "Toutes": mask &= (df['marque'] == f_marque)
+if f_modele != "Tous": mask &= (df['modele'] == f_modele)
+if pepite_only: mask &= (df['score'] >= 80)
 
-if filtre_pepite:
-    df_f = df_f[df_f['score'] >= 85]
+df_final = df[mask].sort_values(by='score', ascending=False)
 
-# --- DASHBOARD ---
-c1, c2, c3, c4 = st.columns(4)
-c1.metric("Véhicules Scanés", len(df_f))
-c2.metric("Prix Moyen", f"{int(df_f['prix'].mean()):,} €".replace(',', ' '))
-c3.metric("Meilleur Score", f"{df_f['score'].max()}/100")
-c4.metric("Pépites Trouvées", len(df_f[df_f['score'] >= 85]))
+# --- KPI LUXE ---
+c1, c2, c3 = st.columns(3)
+c1.metric("Opportunités", len(df_final))
+c2.metric("Ticket Moyen", f"{int(df_final['prix'].mean())} €" if not df_final.empty else "-")
+best = df_final.iloc[0] if not df_final.empty else None
+if best is not None:
+    c3.metric("Plus Belle Truffe", f"Gain : {best['gain']} €")
 
 st.write("")
+st.subheader("Sélection du Jour")
+st.write("")
 
-# Onglets
-tab1, tab2 = st.tabs(["📊 Market Map", "🚘 Liste des Annonces"])
-
-with tab1:
-    st.markdown("##### 📍 Positionnement Prix / KM")
-    fig = px.scatter(
-        df_f, x="km", y="prix", size="score", color="label",
-        color_discrete_map={"💎 PÉPITE": "#00ff00", "✅ Bon coup": "#3498db", "Standard": "#95a5a6", "❌ Trop cher": "#e74c3c"},
-        hover_data=["titre", "annee"], height=500
-    )
-    fig.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", font=dict(color="white"))
-    st.plotly_chart(fig, use_container_width=True)
-
-with tab2:
-    st.markdown(f"##### {len(df_f)} Opportunités identifiées")
-    cols = st.columns(3)
-    for i, row in df_f.iterrows():
-        with cols[i % 3]:
-            # Couleur bordure
-            color = "#00ff00" if row['score'] >= 85 else "#333"
-            
-            with st.container(border=True):
-                # Image
-                st.image(row['img_url'], use_container_width=True)
-                
-                # Header
-                c_a, c_b = st.columns([3, 1])
-                c_a.write(f"**{row['titre']}**")
-                if row['score'] >= 85:
-                    c_b.markdown("💎")
-                
-                # Prix
-                st.markdown(f"<div class='big-font'>{row['prix']} €</div>", unsafe_allow_html=True)
-                st.caption(f"{row['annee']} | {row['km']} km | {row['ville']}")
-                
-                # Jauge
-                st.progress(row['score'] / 100, text=f"Deal Score: {row['score']}/100")
-                
-                st.button("Voir détails", key=row['id'], use_container_width=True)
+# --- VUE LISTE (Design La Truffe) ---
+if df_final.empty:
+    st.info("Le marché est sec. Aucune truffe détectée avec ces critères.")
+else:
+    for i in range(0, len(df_final), 2): # 2 cartes par ligne pour faire plus "grand format"
+        cols = st.columns(2)
+        for j in range(2):
+            if i + j < len(df_final):
+                row = df_final.iloc[i+j]
+                with cols[j]:
+                    # Logique Badge
+                    badge_html = f'<span class="badge-rare">💎 Rareté ({row["score"]}/100)</span>' if row['score'] > 80 else '<span class="badge-standard">Standard</span>'
+                    
+                    st.markdown(f"""
+                    <div class="truffle-card">
+                        <div style="height: 200px; overflow: hidden; border-radius: 8px; margin-bottom: 15px;">
+                            <img src="{row['img_url']}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        {badge_html}
+                        <h3 style="margin-top: 0; font-size: 20px;">{row['titre']}</h3>
+                        <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
+                            {row['annee']} | {row['km']} km | {row['ville']} | <span style="color:#d4af37">Finition {row['finition']}</span>
+                        </p>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div>
+                                <span style="font-size: 12px; color: #555;">Valeur estimée: {row['cote_argus']} €</span><br>
+                                <span class="price-gold">{row['prix']} €</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="color: #238636; font-weight: bold; font-size: 14px;">Gain pot.: +{row['gain']} €</span>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.link_button("Examiner le lot", row['url'], use_container_width=True)
