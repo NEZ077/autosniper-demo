@@ -1,0 +1,39 @@
+name: AutoSniper Robot 🤖
+
+on:
+  schedule:
+    # Se lance toutes les 2 heures (pour éviter le ban)
+    # Tu peux changer '*/2' par '*/1' pour toutes les heures
+    - cron: '0 */2 * * *'
+  workflow_dispatch: # Permet de lancer manuellement avec un bouton
+
+jobs:
+  scrape-and-update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v3
+
+      - name: Installation Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Installation des outils
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium
+
+      - name: Lancement du Scraper
+        run: python scraper.py
+
+      - name: Sauvegarde des nouvelles voitures
+        run: |
+          git config --global user.name "AutoSniper Bot"
+          git config --global user.email "bot@autosniper.com"
+          git add annonces.csv
+          # On ne commit que s'il y a du changement
+          git commit -m "🚗 Nouvelles voitures détectées" || echo "Pas de changement"
+          git push
