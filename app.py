@@ -47,7 +47,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- CHARGEMENT ET LOGIQUE ---
-@st.cache_data # Cache pour accélérer le chargement
+# ttl=900 veut dire : "Expire au bout de 900 secondes (15 min)"
+@st.cache_data(ttl=900)
 def charger_donnees():
     if not os.path.exists("annonces.csv"):
         return pd.DataFrame()
