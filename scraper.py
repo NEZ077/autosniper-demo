@@ -33,7 +33,7 @@ def run_scraper():
     
     with sync_playwright() as p:
         # On garde le mode visible pour être sûr que les images chargent
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
         context = browser.new_context(viewport={"width": 1366, "height": 768})
         page = context.new_page()
 
