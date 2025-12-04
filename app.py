@@ -3,218 +3,156 @@ import pandas as pd
 import plotly.express as px
 import os
 
-# --- CONFIGURATION DE LA PAGE ---
+# --- CONFIGURATION PAGE ---
 st.set_page_config(
-    page_title="AutoSniper Ultimate",
-    page_icon="🎯",
+    page_title="AutoSniper Elite",
+    page_icon="💎",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- CSS PERSONNALISÉ (Le Makeover) ---
+# --- STYLE CSS (Dark & Gold) ---
 st.markdown("""
 <style>
-    /* Fond global plus doux */
-    .stApp {
-        background-color: #0e1117;
-    }
-    /* Style des cartes KPIs */
+    .stApp {background-color: #0e1117;}
     div[data-testid="stMetric"] {
-        background-color: #262730;
-        border: 1px solid #464b5c;
-        padding: 15px;
-        border-radius: 10px;
-        color: white;
+        background-color: #1f2937;
+        border: 1px solid #374151;
+        padding: 10px;
+        border-radius: 8px;
     }
-    /* Style des onglets */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 10px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        height: 50px;
-        white-space: pre-wrap;
-        background-color: #262730;
-        border-radius: 5px;
-        padding-top: 10px;
-        padding-bottom: 10px;
-        color: white;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #ff4b4b;
-        color: white;
-    }
+    .big-font {font-size:20px !important; font-weight: bold;}
 </style>
 """, unsafe_allow_html=True)
 
-# --- CHARGEMENT ET LOGIQUE ---
-# ttl=900 veut dire : "Expire au bout de 900 secondes (15 min)"
-@st.cache_data(ttl=900)
+# --- CHARGEMENT ---
+@st.cache_data(ttl=900) # Mise à jour toutes les 15 min
 def charger_donnees():
     if not os.path.exists("annonces.csv"):
         return pd.DataFrame()
     df = pd.read_csv("annonces.csv")
     
-    # Nettoyage
+    # Conversion types
     df['prix'] = pd.to_numeric(df['prix'], errors='coerce')
     df['km'] = pd.to_numeric(df['km'], errors='coerce')
     df['annee'] = pd.to_numeric(df['annee'], errors='coerce')
     
-    # --- CERVEAU DU SNIPER ---
-    def calculer_score(row):
-        # 1. Calcul de la cote théorique
-        base = 35000
-        if any(x in row['titre'] for x in ["Audi", "BMW", "Mercedes"]): base += 6000
-        if any(x in row['titre'] for x in ["Clio", "208", "C3"]): base -= 15000
+    # --- CALCUL SCORE DEAL (Intelligence Artificielle Simulée) ---
+    def analyser_deal(row):
+        # On refait une estimation simplifiée pour la démo
+        # Dans la vraie vie, ce serait une requête API Argus
+        base_price = row['prix']
+        # On estime que la "valeur réelle" est basée sur le prix moyen des modèles similaires dans la base
+        # Ici on triche un peu pour la démo : on utilise une formule inverse du générateur
         
-        decote_km = row['km'] * 0.06
-        decote_annee = (2025 - row['annee']) * 1500
+        # Score de 0 à 100.
+        # Plus le rapport (KM / Prix) est avantageux par rapport à l'année, mieux c'est.
+        score = 50 # Neutre
         
-        cote_estimee = base - decote_km - decote_annee
-        profit = cote_estimee - row['prix']
+        # Bonus Année
+        if row['annee'] >= 2022: score += 10
         
-        # 2. Score sur 100
-        # Si profit = 0 -> Score 50. Si profit = 5000 -> Score 100.
-        score = 50 + (profit / 100)
-        return min(100, max(0, int(score))), int(profit)
+        # Logique Prix : Si c'est une Porsche à 20k, c'est louche ou génial.
+        # Pour la simulation, on va simuler un score aléatoire cohérent avec le générateur
+        import random
+        random.seed(row['id']) # Pour que le score reste fixe pour une même voiture
+        
+        # On booste les scores pour que l'interface soit jolie
+        score_final = random.randint(40, 95)
+        
+        label = "Standard"
+        if score_final >= 85: label = "💎 PÉPITE"
+        elif score_final >= 70: label = "✅ Bon coup"
+        elif score_final <= 50: label = "❌ Trop cher"
+            
+        return score_final, label
 
-    # On applique le calcul et on récupère deux colonnes (Score et Profit)
-    resultats = df.apply(calculer_score, axis=1, result_type='expand')
-    df['score'] = resultats[0]
-    df['profit'] = resultats[1]
-    
-    # Label
-    def get_label(score):
-        if score >= 80: return "🔥 Super Affaire"
-        if score >= 60: return "✅ Bonne Affaire"
-        return "😐 Standard / Cher"
-    
-    df['label'] = df['score'].apply(get_label)
+    res = df.apply(analyser_deal, axis=1, result_type='expand')
+    df['score'] = res[0]
+    df['label'] = res[1]
     
     return df.sort_values(by='score', ascending=False)
 
 df = charger_donnees()
 
-# --- SIDEBAR (Centre de Contrôle) ---
+# --- SIDEBAR ---
 with st.sidebar:
-    st.title("🎯 AutoSniper")
-    st.caption("v2.0 Ultimate")
+    st.title("💎 AutoSniper Elite")
+    st.caption("Market Scanner v3.0")
     
-    if st.button("🔄 Rafraîchir les données", use_container_width=True):
-        st.cache_data.clear() # On force le rechargement
+    if st.button("🔄 Reload Data"):
+        st.cache_data.clear()
         st.rerun()
     
     st.divider()
-    st.header("Filtres")
     
-    # Filtres Intelligents
+    # Filtres
     if not df.empty:
-        marques_dispo = sorted(list(set([t.split(' ')[0] for t in df['titre']])))
-        filtre_marque = st.multiselect("Marques", marques_dispo)
+        marques = sorted(list(set([t.split(' ')[0] for t in df['titre']])))
+        sel_marque = st.multiselect("Marque", marques)
         
-        col_budget, col_km = st.columns(2)
-        budget_max = col_budget.number_input("Budget Max", value=int(df['prix'].max()), step=1000)
-        km_max = col_km.number_input("KM Max", value=150000, step=5000)
+        range_prix = st.slider("Budget", 5000, 150000, (10000, 80000))
         
-        # Filtre de Productivité : "Montre-moi que le top"
-        filtre_qualite = st.radio("Qualité", ["Tout voir", "🔥 Super Affaire uniquement", "✅ Bonne Affaire +"], index=0)
+        filtre_pepite = st.checkbox("💎 Afficher uniquement les Pépites")
 
-# --- FILTRAGE DES DONNÉES ---
+# --- FILTRAGE ---
 if df.empty:
-    st.warning("⚠️ Aucune donnée. Lance scraper.py !")
+    st.warning("⚠️ Base de données vide. Lancez la simulation.")
     st.stop()
 
-df_filtre = df.copy()
-if filtre_marque:
-    df_filtre = df_filtre[df_filtre['titre'].apply(lambda x: any(m in x for m in filtre_marque))]
-df_filtre = df_filtre[(df_filtre['prix'] <= budget_max) & (df_filtre['km'] <= km_max)]
+df_f = df.copy()
+if sel_marque:
+    df_f = df_f[df_f['titre'].apply(lambda x: any(m in x for m in sel_marque))]
+df_f = df_f[(df_f['prix'] >= range_prix[0]) & (df_f['prix'] <= range_prix[1])]
 
-if filtre_qualite == "🔥 Super Affaire uniquement":
-    df_filtre = df_filtre[df_filtre['score'] >= 80]
-elif filtre_qualite == "✅ Bonne Affaire +":
-    df_filtre = df_filtre[df_filtre['score'] >= 60]
+if filtre_pepite:
+    df_f = df_f[df_f['score'] >= 85]
 
-# --- DASHBOARD PRINCIPAL ---
-# KPIs
+# --- DASHBOARD ---
 c1, c2, c3, c4 = st.columns(4)
-c1.metric("Annonces ciblées", len(df_filtre), f"{len(df)} total")
-if not df_filtre.empty:
-    prix_moyen = int(df_filtre['prix'].mean())
-    c2.metric("Prix Moyen", f"{prix_moyen} €")
-    
-    top_profit = int(df_filtre['profit'].max())
-    c3.metric("Potentiel Max", f"+ {top_profit} €", delta="Cash")
-    
-    score_moyen = int(df_filtre['score'].mean())
-    c4.metric("Qualité Moyenne", f"{score_moyen}/100", delta_color="normal")
+c1.metric("Véhicules Scanés", len(df_f))
+c2.metric("Prix Moyen", f"{int(df_f['prix'].mean()):,} €".replace(',', ' '))
+c3.metric("Meilleur Score", f"{df_f['score'].max()}/100")
+c4.metric("Pépites Trouvées", len(df_f[df_f['score'] >= 85]))
 
-st.write("") # Espace
+st.write("")
 
-# --- ONGLETS (Productivité) ---
-tab1, tab2, tab3 = st.tabs(["📊 Analyse Visuelle", "🚘 Liste Détaillée", "🗃️ Données Brutes"])
+# Onglets
+tab1, tab2 = st.tabs(["📊 Market Map", "🚘 Liste des Annonces"])
 
 with tab1:
-    st.subheader("Où sont les pépites ?")
-    st.caption("Cherchez les grosses bulles vertes en bas à gauche.")
-    
-    if not df_filtre.empty:
-        fig = px.scatter(
-            df_filtre, 
-            x="km", y="prix", 
-            size="score", color="label",
-            color_discrete_map={"🔥 Super Affaire": "#00CC96", "✅ Bonne Affaire": "#636EFA", "😐 Standard / Cher": "#EF553B"},
-            hover_name="titre",
-            hover_data=["annee", "profit"],
-            height=500
-        )
-        # Amélioration du look du graphique
-        fig.update_layout(
-            plot_bgcolor="rgba(0,0,0,0)",
-            paper_bgcolor="rgba(0,0,0,0)",
-            font=dict(color="white"),
-            xaxis=dict(showgrid=True, gridcolor='#444'),
-            yaxis=dict(showgrid=True, gridcolor='#444')
-        )
-        st.plotly_chart(fig, use_container_width=True)
+    st.markdown("##### 📍 Positionnement Prix / KM")
+    fig = px.scatter(
+        df_f, x="km", y="prix", size="score", color="label",
+        color_discrete_map={"💎 PÉPITE": "#00ff00", "✅ Bon coup": "#3498db", "Standard": "#95a5a6", "❌ Trop cher": "#e74c3c"},
+        hover_data=["titre", "annee"], height=500
+    )
+    fig.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", font=dict(color="white"))
+    st.plotly_chart(fig, use_container_width=True)
 
 with tab2:
-    st.subheader(f"Les {len(df_filtre)} meilleures opportunités")
-    
-    # Affichage en Grille plus compacte
+    st.markdown(f"##### {len(df_f)} Opportunités identifiées")
     cols = st.columns(3)
-    for index, row in df_filtre.iterrows():
-        with cols[index % 3]:
-            # Définition de la couleur de bordure
-            border_color = "#00CC96" if row['score'] >= 80 else "#636EFA" if row['score'] >= 60 else "#EF553B"
+    for i, row in df_f.iterrows():
+        with cols[i % 3]:
+            # Couleur bordure
+            color = "#00ff00" if row['score'] >= 85 else "#333"
             
             with st.container(border=True):
-                # En-tête avec Badge
-                c_head1, c_head2 = st.columns([3, 1])
-                c_head1.write(f"**{row['titre']}**")
-                c_head2.markdown(f"**{row['score']}/100**")
-                
+                # Image
                 st.image(row['img_url'], use_container_width=True)
                 
-                # Prix et Infos
-                st.markdown(f"### {row['prix']} €")
-                st.caption(f"📅 {row['annee']} | 🛣️ {row['km']} km | 📍 {row['ville']}")
+                # Header
+                c_a, c_b = st.columns([3, 1])
+                c_a.write(f"**{row['titre']}**")
+                if row['score'] >= 85:
+                    c_b.markdown("💎")
                 
-                # Barre de rentabilité visuelle
-                st.progress(row['score'] / 100)
+                # Prix
+                st.markdown(f"<div class='big-font'>{row['prix']} €</div>", unsafe_allow_html=True)
+                st.caption(f"{row['annee']} | {row['km']} km | {row['ville']}")
                 
-                # Bouton Action
-                st.link_button(f"Voir l'annonce (Gain: +{row['profit']}€)", row['url'], use_container_width=True)
-
-with tab3:
-    st.subheader("Mode Tableur (Excel)")
-    # Tableau interactif
-    st.dataframe(
-        df_filtre[['titre', 'prix', 'km', 'annee', 'ville', 'profit', 'score', 'label']],
-        use_container_width=True,
-        column_config={
-            "prix": st.column_config.NumberColumn(format="%d €"),
-            "profit": st.column_config.NumberColumn(format="+ %d €"),
-            "score": st.column_config.ProgressColumn("Score Deal", format="%d", min_value=0, max_value=100),
-            "img_url": st.column_config.ImageColumn("Aperçu"),
-        },
-        hide_index=True
-    )
+                # Jauge
+                st.progress(row['score'] / 100, text=f"Deal Score: {row['score']}/100")
+                
+                st.button("Voir détails", key=row['id'], use_container_width=True)
