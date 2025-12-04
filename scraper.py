@@ -8,7 +8,15 @@ from playwright.sync_api import sync_playwright
 
 # --- CONFIGURATION ---
 CSV_FILE = "annonces.csv"
-TARGET_URL = "https://www.autoscout24.fr/lst/audi/a1?atype=C&cy=F&desc=0&sort=standard&source=homepage_search-mask&ustate=N%2CU"
+
+# Liste des cibles (Tu peux modifier les filtres ici, par exemple ajouter &pricefrom=10000)
+URLS_CIBLES = {
+    "Audi": "https://www.autoscout24.fr/lst/audi?atype=C&cy=F&desc=0&sort=standard&source=homepage_search-mask&ustate=N%2CU",
+    "BMW": "https://www.autoscout24.fr/lst/bmw?atype=C&cy=F&desc=0&sort=standard&source=homepage_search-mask&ustate=N%2CU",
+    "Mercedes": "https://www.autoscout24.fr/lst/mercedes-benz?atype=C&cy=F&desc=0&sort=standard&source=homepage_search-mask&ustate=N%2CU",
+    "Porsche": "https://www.autoscout24.fr/lst/porsche?atype=C&cy=F&desc=0&sort=standard&source=homepage_search-mask&ustate=N%2CU",
+    "Renault": "https://www.autoscout24.fr/lst/renault?atype=C&cy=F&desc=0&sort=standard&source=homepage_search-mask&ustate=N%2CU"
+}
 
 def init_csv():
     # On écrase le fichier pour repartir à zéro
@@ -24,89 +32,101 @@ def run_scraper():
     init_csv()
     
     with sync_playwright() as p:
-        # --- OPTIMISATION 1 : HEADLESS = TRUE (Mode Invisible) ---
-        browser = p.chromium.launch(headless=True) 
-        context = browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        )
+        # On garde le mode visible pour être sûr que les images chargent
+        browser = p.chromium.launch(headless=False)
+        context = browser.new_context(viewport={"width": 1366, "height": 768})
         page = context.new_page()
 
-        # --- OPTIMISATION 2 : BLOQUER LES IMAGES ET LE CSS ---
-        # Ça empêche de charger les trucs lourds inutiles
-        def block_heavy_resources(route):
-            if route.request.resource_type in ["image", "stylesheet", "font", "media"]:
-                route.abort()
-            else:
-                route.continue_()
-        
-        page.route("**/*", block_heavy_resources)
+        print("[START] Démarrage de la tournée des constructeurs...")
 
-        print(f"[START] Connexion Rapide à AutoScout24 (Mode Turbo)...")
-        
-        try:
-            start_time = time.time()
-            page.goto(TARGET_URL, timeout=60000)
+        # BOUCLE SUR CHAQUE MARQUE
+        for marque, url in URLS_CIBLES.items():
+            print(f"\n[ÉTAPE] Analyse de : {marque.upper()}...")
             
-            # Plus besoin d'attendre l'affichage visuel des cookies car on ne clique pas dessus
-            # On va direct aux données
-            
-            print("[INFO] Page chargée. Extraction en cours...")
-            
-            # On attend juste que le texte des articles soit là
-            page.wait_for_selector("article", timeout=10000)
-            
-            annonces = page.locator("article[data-testid='list-item']").all()
-            print(f"[INFO] {len(annonces)} annonces détectées.")
+            try:
+                page.goto(url, timeout=60000)
+                
+                # Gestion cookies (seulement au premier passage ou si elle réapparait)
+                try:
+                    if page.locator("button:has-text('Accepter')").is_visible():
+                        page.click("button:has-text('Accepter')")
+                        time.sleep(1)
+                except: pass
 
-            count = 0
-            existing_ids = set()
+                # Scroll progressif pour charger les images (Lazy Loading)
+                for _ in range(5):
+                    page.mouse.wheel(0, 500)
+                    time.sleep(0.5)
+                
+                page.wait_for_selector("article", timeout=10000)
+                annonces = page.locator("article[data-testid='list-item']").all()
+                print(f"  -> {len(annonces)} annonces trouvées pour {marque}.")
 
-            with open(CSV_FILE, mode='a', newline='', encoding='utf-8') as f:
-                writer = csv.writer(f)
+                count = 0
+                existing_ids = set() # Reset des IDs pour éviter doublons intra-page mais pas inter-marques
 
-                for card in annonces:
-                    try:
-                        # Extraction ultra-rapide
-                        titre = card.locator("h2").first.inner_text().strip()
-                        
-                        prix_raw = card.locator("p[data-testid='regular-price']").first.inner_text()
-                        prix = clean_text(prix_raw)
+                with open(CSV_FILE, mode='a', newline='', encoding='utf-8') as f:
+                    writer = csv.writer(f)
 
-                        all_text = card.inner_text()
-                        match_annee = re.search(r'(20\d{2})', all_text)
-                        annee = match_annee.group(1) if match_annee else "2020"
+                    for card in annonces:
+                        try:
+                            # 1. LIEN (Correction du bug de lien)
+                            link_el = card.locator("a").first
+                            raw_url = link_el.get_attribute("href")
+                            
+                            if not raw_url: continue
+                            
+                            # Si le lien commence par http, c'est bon, sinon on ajoute le domaine
+                            full_url = raw_url if raw_url.startswith("http") else "https://www.autoscout24.fr" + raw_url
+                            
+                            # ID unique
+                            ad_id = raw_url.split('-')[-1]
+                            if ad_id in existing_ids: continue
 
-                        match_km = re.search(r'([\d\s\.]+)\s*km', all_text)
-                        km = clean_text(match_km.group(1)) if match_km else "0"
+                            # 2. IMAGE (On cherche le srcset qui contient la HD, sinon src)
+                            img_url = "https://placehold.co/600x400?text=Pas+d+image"
+                            try:
+                                # On cible la première image de l'article
+                                img_el = card.locator("img").first
+                                # AutoScout met souvent l'image HD dans srcset. On prend le premier lien du srcset.
+                                srcset = img_el.get_attribute("srcset")
+                                if srcset:
+                                    img_url = srcset.split(',')[0].split(' ')[0] # On prend la 1ère URL du lot
+                                else:
+                                    img_url = img_el.get_attribute("src")
+                            except: pass
 
-                        lien_el = card.locator("a").first
-                        relative_url = lien_el.get_attribute("href")
-                        full_url = "https://www.autoscout24.fr" + relative_url
-                        ad_id = relative_url.split('-')[-1]
-                        
-                        if ad_id in existing_ids: continue
+                            # 3. DONNÉES CLASSIQUES
+                            titre = card.locator("h2").first.inner_text().strip()
+                            
+                            prix_raw = card.locator("p[data-testid='regular-price']").first.inner_text()
+                            prix = clean_text(prix_raw)
 
-                        # On met une fausse image car on a bloqué le chargement des vraies pour la vitesse
-                        # (L'app Streamlit chargera la vraie image plus tard si on clique sur le lien, 
-                        # ou on peut laisser le placeholder pour la liste)
-                        img_url = "https://placehold.co/600x400/222/fff?text=Image+Non+Chargee"
+                            all_text = card.inner_text()
+                            match_annee = re.search(r'(20\d{2})', all_text)
+                            annee = match_annee.group(1) if match_annee else "2020"
 
-                        writer.writerow([ad_id, titre, prix, km, annee, "France", full_url, img_url, datetime.now()])
-                        existing_ids.add(ad_id)
-                        count += 1
-                        
-                        # Petit print pour voir que ça avance
-                        print(f"  ⚡ {titre} -> {prix}€")
+                            match_km = re.search(r'([\d\s\.]+)\s*km', all_text)
+                            km = clean_text(match_km.group(1)) if match_km else "0"
 
-                    except:
-                        continue
-            
-            duration = round(time.time() - start_time, 2)
-            print(f"[RESULTAT] {count} voitures extraites en {duration} secondes !")
+                            # 4. SAUVEGARDE
+                            writer.writerow([ad_id, titre, prix, km, annee, "France", full_url, img_url, datetime.now()])
+                            existing_ids.add(ad_id)
+                            count += 1
+                            print(f"    + {titre} ({prix}€)")
 
-        except Exception as e:
-            print(f"[ERREUR] {e}")
+                        except Exception as e:
+                            continue
+                
+                print(f"  ✅ {count} {marque} ajoutées.")
 
+            except Exception as e:
+                print(f"  ❌ Erreur sur {marque}: {e}")
+
+            # Petite pause entre les marques pour ne pas énerver le site
+            time.sleep(3)
+
+        print("\n[FIN] Tournée terminée. Fichier annonces.csv prêt.")
         browser.close()
 
 if __name__ == "__main__":
