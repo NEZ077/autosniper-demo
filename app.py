@@ -11,81 +11,165 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS PREMIUM V2 ---
+# --- CSS STYLE "LA CENTRALE" (Dark Mode) ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 
-    .stApp { background-color: #0a0a0a; color: #e0e0e0; font-family: 'Lato', sans-serif; }
+    .stApp { background-color: #f4f4f4; color: #333; font-family: 'Roboto', sans-serif; }
     
-    /* Sidebar */
-    section[data-testid="stSidebar"] { background-color: #111; border-right: 1px solid #222; }
-    
-    /* Carte Voiture */
-    .truffle-card {
-        background: #141414;
-        border: 1px solid #333;
-        border-radius: 12px;
-        padding: 0; /* Padding 0 pour que l'image colle aux bords */
-        overflow: hidden;
+    /* Si l'utilisateur est en mode sombre via Streamlit settings, on force un fond sombre propre */
+    @media (prefers-color-scheme: dark) {
+        .stApp { background-color: #0e1117; color: #e0e0e0; }
+    }
+
+    /* CARTE TYPE "LA CENTRALE" */
+    .lc-card {
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         margin-bottom: 20px;
+        overflow: hidden;
+        border: 1px solid #e0e0e0;
         transition: transform 0.2s;
     }
-    .truffle-card:hover {
-        border-color: #d4af37;
+    
+    /* Mode sombre pour la carte */
+    @media (prefers-color-scheme: dark) {
+        .lc-card { background-color: #1e2126; border-color: #2e333d; }
+    }
+
+    .lc-card:hover {
         transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        border-color: #ff5252; /* Rouge La Centrale au survol */
+    }
+
+    /* IMAGE */
+    .lc-img-container {
+        position: relative;
+        height: 200px;
+        width: 100%;
+    }
+    .lc-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* BADGES SUR L'IMAGE */
+    .badge-corner {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background-color: #ff5252; /* Rouge */
+        color: white;
+        padding: 4px 8px;
+        font-size: 11px;
+        font-weight: bold;
+        border-radius: 4px;
+        text-transform: uppercase;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     
-    /* Contenu Carte */
-    .card-content { padding: 15px; }
-    
-    /* Titres et Textes */
-    .card-title { font-size: 18px; font-weight: bold; color: white; margin-bottom: 5px; }
-    .card-sub { font-size: 13px; color: #888; margin-bottom: 10px; }
-    .card-price { font-size: 22px; color: #d4af37; font-weight: bold; }
-    
-    /* Badges Options (C'est ça qui remplace le code bizarre) */
-    .option-tag {
-        display: inline-block;
-        background-color: #222;
-        color: #aaa;
-        padding: 3px 8px;
-        border-radius: 10px;
-        font-size: 10px;
-        margin-right: 5px;
-        margin-bottom: 5px;
-        border: 1px solid #333;
-    }
-    
-    /* Badge Rentabilité */
-    .badge-gain {
-        background-color: rgba(35, 134, 54, 0.2);
-        color: #2ea043;
+    .badge-score {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background-color: rgba(0,0,0,0.8);
+        color: #4caf50; /* Vert */
         padding: 4px 8px;
         border-radius: 4px;
         font-size: 12px;
         font-weight: bold;
-        float: right;
+        border: 1px solid #4caf50;
+    }
+
+    /* CONTENU */
+    .lc-content { padding: 15px; }
+
+    .lc-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
-    /* Image */
-    .card-img { width: 100%; height: 180px; object-fit: cover; }
+    .lc-subtitle {
+        font-size: 14px;
+        color: #888;
+        margin-bottom: 15px;
+    }
+
+    /* PRIX & INFO */
+    .lc-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+    }
+    
+    @media (prefers-color-scheme: dark) {
+        .lc-footer { border-top-color: #333; }
+    }
+
+    .lc-price {
+        font-size: 24px;
+        font-weight: 800;
+        color: #ff5252; /* Rouge Prix */
+    }
+    
+    .lc-cote {
+        font-size: 12px;
+        color: #2ea043; /* Vert gain */
+        text-align: right;
+        font-weight: bold;
+    }
+
+    /* OPTIONS (Tags propres) */
+    .opt-tag {
+        display: inline-block;
+        font-size: 11px;
+        background-color: #f0f2f6;
+        color: #555;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-right: 4px;
+        margin-bottom: 4px;
+    }
+    @media (prefers-color-scheme: dark) {
+        .opt-tag { background-color: #2c3036; color: #aaa; }
+    }
+
+    /* Section Header Pépites */
+    .pepite-header {
+        font-size: 22px; 
+        font-weight: bold; 
+        margin-bottom: 20px; 
+        border-left: 5px solid #d4af37; 
+        padding-left: 15px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# --- PAYWALL (Capture Email) ---
-@st.dialog("💎 Rejoindre le Cercle Privé")
+# --- PAYWALL ---
+@st.dialog("💎 Dossier Confidentiel")
 def afficher_paywall(voiture_titre):
-    st.markdown(f"**{voiture_titre}**")
-    st.info("🔒 Cette opportunité est réservée aux membres.")
-    email = st.text_input("Votre Email :", placeholder="exemple@mail.com")
-    if st.button("Accéder au dossier", use_container_width=True):
+    st.subheader(voiture_titre)
+    st.warning("🔒 Accès réservé aux membres.")
+    st.write("Entrez votre email pour débloquer le lien vendeur et l'historique.")
+    email = st.text_input("Email :", placeholder="moi@exemple.com")
+    if st.button("Voir l'annonce", use_container_width=True):
         if "@" in email:
-            st.success("Accès autorisé. Redirection...")
-            time.sleep(2)
+            st.success("Redirection...")
+            time.sleep(1.5)
             st.rerun()
         else:
-            st.error("Email invalide.")
+            st.error("Email requis.")
 
 # --- CHARGEMENT ---
 @st.cache_data
@@ -96,96 +180,121 @@ def charger_donnees():
     cols = ['prix', 'cote_argus', 'km', 'annee']
     for c in cols: df[c] = pd.to_numeric(df[c], errors='coerce')
     
-    def score_algo(row):
+    def algo_score(row):
         diff = row['cote_argus'] - row['prix']
         score = 50 + ((diff / row['cote_argus']) * 200)
         return min(100, max(0, int(score))), int(diff)
 
-    res = df.apply(score_algo, axis=1, result_type='expand')
+    res = df.apply(algo_score, axis=1, result_type='expand')
     df['score'] = res[0]
     df['gain'] = res[1]
+    
     return df
 
 df = charger_donnees()
 
-# --- SIDEBAR (Filtres Massifs) ---
+# --- SIDEBAR ---
 with st.sidebar:
-    st.sidebar.image("logo.png", width=200)
-    st.header("💎 La Truffe")
-    if st.button("🔄 Reload"): st.cache_data.clear(); st.rerun()
+    st.image("logo.png", width=150) # Assure-toi d'avoir l'image ou supprime cette ligne
+    st.title("Filtres")
+    
+    if st.button("🔄 Actualiser"): st.cache_data.clear(); st.rerun()
     st.write("---")
     
-    # 1. Marque (Toutes les 50 marques sont là)
     all_marques = ["Toutes"] + sorted(df['marque'].unique().tolist())
     f_marque = st.selectbox("Marque", all_marques)
     
-    # 2. Modèle (Adaptatif)
     f_modele = "Tous"
     if f_marque != "Toutes":
         mods = ["Tous"] + sorted(df[df['marque'] == f_marque]['modele'].unique().tolist())
         f_modele = st.selectbox("Modèle", mods)
         
-    st.write("")
-    budget = st.slider("Budget Max", 5000, 200000, 60000, step=1000)
-    pepite = st.checkbox("💎 Pépites uniquement")
+    budget = st.slider("Budget Max", 5000, 250000, 100000, step=5000)
 
 # --- FILTRAGE ---
-if df.empty: st.error("Lancez scraper.py !"); st.stop()
+if df.empty: st.error("Aucune donnée. Lancez scraper.py"); st.stop()
 
 mask = (df['prix'] <= budget)
 if f_marque != "Toutes": mask &= (df['marque'] == f_marque)
 if f_modele != "Tous": mask &= (df['modele'] == f_modele)
-if pepite: mask &= (df['score'] >= 80)
 
 df_final = df[mask].sort_values(by='score', ascending=False)
 
-# --- KPI ---
-c1, c2, c3 = st.columns(3)
-c1.metric("Résultats", len(df_final))
-c2.metric("Prix Moyen", f"{int(df_final['prix'].mean())} €" if not df_final.empty else "-")
-top_gain = df_final['gain'].max() if not df_final.empty else 0
-c3.metric("Meilleur Gain", f"+{top_gain} €")
+# --- 1. SECTION : LES DERNIÈRES PÉPITES (Top 3) ---
+# On prend les 3 meilleures voitures avec un score > 80
+df_pepites = df_final[df_final['score'] >= 80].head(3)
 
-st.write("")
+if not df_pepites.empty:
+    st.markdown('<div class="pepite-header">🔥 Arrivages Pépites (Top Rentabilité)</div>', unsafe_allow_html=True)
+    
+    cols = st.columns(3)
+    for i, (_, row) in enumerate(df_pepites.iterrows()):
+        with cols[i]:
+            # Nettoyage des options (on en prend 2 max)
+            opt_list = str(row.get('options', '')).split('|')[:2]
+            tags_html = "".join([f'<span class="opt-tag">{o.strip()}</span>' for o in opt_list])
 
-# --- AFFICHAGE GRILLE ---
+            st.markdown(f"""
+            <div class="lc-card">
+                <div class="lc-img-container">
+                    <img src="{row['img_url']}" class="lc-img">
+                    <div class="badge-corner">SUPER DEAL</div>
+                    <div class="badge-score">Score: {row['score']}/100</div>
+                </div>
+                <div class="lc-content">
+                    <div class="lc-title">{row['titre']}</div>
+                    <div class="lc-subtitle">{row['annee']} | {row['km']} km | {row['ville']}</div>
+                    <div>{tags_html}</div>
+                    <div class="lc-footer">
+                        <div class="lc-price">{row['prix']} €</div>
+                        <div class="lc-cote">Gain estimé<br>+{row['gain']} €</div>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("🔒 Voir", key=f"pep_{row['id']}", use_container_width=True):
+                afficher_paywall(row['titre'])
+
+    st.write("---") # Séparateur
+
+# --- 2. SECTION : TOUTES LES ANNONCES ---
+st.subheader(f"Toutes les annonces ({len(df_final)})")
+
 if df_final.empty:
-    st.info("Aucun véhicule trouvé.")
+    st.info("Aucun résultat avec ces filtres.")
 else:
-    # Grille de 3 colonnes
-    for i in range(0, len(df_final), 3):
-        cols = st.columns(3)
-        for j in range(3):
+    # Grille de 4 colonnes pour faire plus dense comme La Centrale
+    for i in range(0, len(df_final), 4):
+        cols = st.columns(4)
+        for j in range(4):
             if i + j < len(df_final):
                 row = df_final.iloc[i+j]
                 with cols[j]:
+                    # Badge "Nouveau" ou "Top" selon le score
+                    badge_txt = "TOP" if row['score'] > 75 else "OCCASION"
+                    color_badge = "#d4af37" if row['score'] > 75 else "#555"
                     
-                    # Construction des badges d'options (HTML propre)
-                    # On récupère la chaine "GPS | Cuir" et on la coupe
-                    options_list = str(row.get('options', 'Standard')).split('|')
-                    options_html = ""
-                    for opt in options_list[:3]: # On affiche max 3 options pour pas surcharger
-                        options_html += f'<span class="option-tag">{opt.strip()}</span>'
+                    # Options clean
+                    opt_list = str(row.get('options', '')).split('|')[:2]
+                    tags_html = "".join([f'<span class="opt-tag">{o.strip()}</span>' for o in opt_list])
                     
-                    gain_html = f'<span class="badge-gain">+{row["gain"]}€</span>' if row['gain'] > 0 else ""
-
                     st.markdown(f"""
-                    <div class="truffle-card">
-                        <img src="{row['img_url']}" class="card-img">
-                        <div class="card-content">
-                            {gain_html}
-                            <div class="card-title">{row['titre']}</div>
-                            <div class="card-sub">{row['annee']} | {row['km']} km | {row['ville']}</div>
-                            <div style="margin-bottom:10px;">
-                                {options_html}
-                            </div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-                                <span class="card-price">{row['prix']} €</span>
-                                <span style="font-size:12px; color:#555;">Cote: {row['cote_argus']}€</span>
+                    <div class="lc-card">
+                        <div class="lc-img-container">
+                            <img src="{row['img_url']}" class="lc-img">
+                            <div class="badge-corner" style="background-color:{color_badge}">{badge_txt}</div>
+                        </div>
+                        <div class="lc-content">
+                            <div class="lc-title">{row['titre']}</div>
+                            <div class="lc-subtitle">{row['annee']} | {row['km']} km</div>
+                            <div style="height:25px; overflow:hidden;">{tags_html}</div>
+                            <div class="lc-footer">
+                                <div class="lc-price" style="font-size:20px;">{row['prix']} €</div>
+                                <div style="font-size:12px; color:#888;">Cote: {row['cote_argus']}€</div>
                             </div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    if st.button("🔒 Voir le dossier", key=f"b_{row['id']}", use_container_width=True):
+                    if st.button("Détails", key=f"list_{row['id']}", use_container_width=True):
                         afficher_paywall(row['titre'])
