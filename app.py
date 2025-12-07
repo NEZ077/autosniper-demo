@@ -110,6 +110,7 @@ df = charger_donnees()
 
 # --- SIDEBAR (Filtres Massifs) ---
 with st.sidebar:
+    st.sidebar.image("logo.png", width=200)
     st.header("💎 La Truffe")
     if st.button("🔄 Reload"): st.cache_data.clear(); st.rerun()
     st.write("---")
