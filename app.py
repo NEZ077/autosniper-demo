@@ -153,6 +153,12 @@ st.markdown("""
         border-left: 5px solid #d4af37; 
         padding-left: 15px;
     }
+            
+        /* Ajoute ça dans ton CSS existant */
+    .market-box { background: #1a1d21; padding: 10px; border-radius: 6px; text-align: center; border: 1px solid #333; }
+    .market-val { color: #2ea043; font-weight: bold; font-size: 14px; }
+    .market-lbl { color: #666; font-size: 10px; text-transform: uppercase; }
+    .logo-text { font-size: 26px; font-weight: 800; color: #d4af37; text-align: center; letter-spacing: 2px; margin-bottom: 20px;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -194,22 +200,64 @@ def charger_donnees():
 df = charger_donnees()
 
 # --- SIDEBAR ---
+# --- NOUVELLE SIDEBAR COCKPIT ---
 with st.sidebar:
-    st.image("logo.png", width=150) # Assure-toi d'avoir l'image ou supprime cette ligne
-    st.title("Filtres")
+    # 1. LOGO TEXTE (Remplace l'image carrée par une bannière texte classe)
+    st.markdown('<div class="logo-text">LA TRUFFE</div>', unsafe_allow_html=True)
+
+    # 2. NAVIGATION (Boutons radios stylés)
+    menu = st.radio("Navigation", ["📡 Radar", "⭐ Favoris", "🔔 Alertes"], label_visibility="collapsed")
     
-    if st.button("🔄 Actualiser"): st.cache_data.clear(); st.rerun()
+    st.write("---")
+
+    # 3. MARKET PULSE (Remplissage visuel pro)
+    st.caption("📊 TENDANCE MARCHÉ")
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown("""<div class="market-box"><div class="market-val">↗ BULL</div><div class="market-lbl">Porsche</div></div>""", unsafe_allow_html=True)
+    with c2:
+        st.markdown("""<div class="market-box"><div class="market-val">↘ BEAR</div><div class="market-lbl">Diesel</div></div>""", unsafe_allow_html=True)
+
     st.write("---")
     
-    all_marques = ["Toutes"] + sorted(df['marque'].unique().tolist())
-    f_marque = st.selectbox("Marque", all_marques)
+    # 4. FILTRES DENSES (Ça remplit l'espace)
+    st.header("🎯 Ciblage")
     
-    f_modele = "Tous"
-    if f_marque != "Toutes":
-        mods = ["Tous"] + sorted(df[df['marque'] == f_marque]['modele'].unique().tolist())
-        f_modele = st.selectbox("Modèle", mods)
+    if st.button("🔄 Scan Réseau", use_container_width=True): 
+        st.cache_data.clear()
+        st.rerun()
+
+    if not df.empty:
+        # Ligne 1 : Marque
+        marques = ["Toutes"] + sorted(df['marque'].unique().tolist())
+        f_marque = st.selectbox("Marque", marques)
         
-    budget = st.slider("Budget Max", 5000, 250000, 100000, step=5000)
+        # Ligne 2 : Modèle
+        mods = ["Tous"]
+        if f_marque != "Toutes":
+            mods += sorted(df[df['marque'] == f_marque]['modele'].unique().tolist())
+        f_modele = st.selectbox("Modèle", mods)
+
+        # Ligne 3 : Carburant & Boite (Cote à cote pour densifier)
+        c_carb, c_boite = st.columns(2)
+        f_carb = c_carb.selectbox("Carburant", ["Tous"] + sorted(df['carburant'].unique().tolist()))
+        f_boite = c_boite.selectbox("Boîte", ["Toutes"] + sorted(df['boite'].unique().tolist()))
+
+        # Sliders
+        budget = st.slider("Budget Max", 10000, 200000, 80000, step=5000)
+        
+    st.write("---")
+    
+    # 5. PROFIL MEMBRE (En bas pour finir proprement)
+    st.markdown("""
+    <div style="background:#1a1d21; padding:12px; border-radius:8px; display:flex; align-items:center; border:1px solid #333;">
+        <div style="background:#d4af37; width:35px; height:35px; border-radius:50%; margin-right:10px; display:flex; align-items:center; justify-content:center; color:black; font-weight:bold;">M</div>
+        <div>
+            <div style="font-size:13px; font-weight:bold; color:white;">Membre Invité</div>
+            <div style="font-size:11px; color:#2ea043;">● Connecté</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # --- FILTRAGE ---
 if df.empty: st.error("Aucune donnée. Lancez scraper.py"); st.stop()
