@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import os
+import time
 
 # --- CONFIGURATION (La Truffe Branding) ---
 st.set_page_config(
@@ -133,6 +134,34 @@ def charger_donnees():
 
 df = charger_donnees()
 
+# --- FONCTION PAYWALL (Le Levier Marketing) ---
+@st.dialog("💎 Rejoindre le Cercle Privé")
+def afficher_paywall(voiture_titre):
+    st.markdown(f"Vous tentez d'accéder à la fiche confidentielle :")
+    st.markdown(f"**{voiture_titre}**")
+    
+    st.divider()
+    
+    st.markdown("""
+    <div style="background-color: #1a1a1a; padding: 15px; border-radius: 8px; border-left: 3px solid #d4af37;">
+        <p style="margin:0; font-size:14px;">🔒 <b>Accès Restreint</b></p>
+        <p style="margin:0; font-size:12px; color: #888;">L'accès aux liens directs est réservé aux membres abonnés de <b>La Truffe Premium</b>.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.write("")
+    
+    email = st.text_input("Inscrivez-vous sur la liste d'attente V1 :", placeholder="votre@email.com")
+    
+    if st.button("Demander mon accès", use_container_width=True):
+        if "@" in email:
+            st.balloons() # Petite récompense visuelle
+            st.success("Demande reçue ! Nos courtiers vous contacteront sous 24h.")
+            time.sleep(3)
+            st.rerun()
+        else:
+            st.error("Veuillez entrer un email valide.")
+
 # --- SIDEBAR (Le Menu du Chef) ---
 with st.sidebar:
     # TITRE LOGO
@@ -219,4 +248,6 @@ else:
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    st.link_button("Examiner le lot", row['url'], use_container_width=True)
+                    # NOUVEAU BOUTON PAYWALL
+                    if st.button("🔒 Débloquer le lien", key=f"btn_{row['id']}", use_container_width=True):
+                        afficher_paywall(row['titre'])
