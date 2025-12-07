@@ -3,3 +3,4 @@ pandas
 plotly
 playwright
 pytest-playwright
+fpdf
