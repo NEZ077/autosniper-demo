@@ -1,115 +1,93 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-import os
 import time
+import os
 
-# --- CONFIGURATION (La Truffe Branding) ---
+# --- CONFIGURATION ---
 st.set_page_config(
     page_title="La Truffe",
-    page_icon="💎", # Ou 🍄 si tu préfères le côté littéral
+    page_icon="💎",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- CSS LUXURY / DARK MODE ---
+# --- CSS PREMIUM V2 ---
 st.markdown("""
 <style>
-    /* Import de police élégante (Google Fonts) */
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap');
 
-    /* FOND GÉNÉRAL */
-    .stApp {
-        background-color: #0a0a0a; /* Noir très profond */
-        color: #e0e0e0;
-        font-family: 'Lato', sans-serif;
-    }
+    .stApp { background-color: #0a0a0a; color: #e0e0e0; font-family: 'Lato', sans-serif; }
     
-    /* TITRES */
-    h1, h2, h3 {
-        font-family: 'Playfair Display', serif; /* Police type "Luxe" */
-        color: #d4af37 !important; /* Couleur OR */
-        font-weight: 700;
-    }
+    /* Sidebar */
+    section[data-testid="stSidebar"] { background-color: #111; border-right: 1px solid #222; }
     
-    /* SIDEBAR */
-    section[data-testid="stSidebar"] {
-        background-color: #111111;
-        border-right: 1px solid #333;
-    }
-    
-    /* CARTES VOITURES (Style Carte de Crédit Black) */
+    /* Carte Voiture */
     .truffle-card {
-        background: linear-gradient(145deg, #1a1a1a, #141414);
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 25px;
+        background: #141414;
         border: 1px solid #333;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.7);
-        transition: all 0.3s ease;
+        border-radius: 12px;
+        padding: 0; /* Padding 0 pour que l'image colle aux bords */
+        overflow: hidden;
+        margin-bottom: 20px;
+        transition: transform 0.2s;
     }
     .truffle-card:hover {
-        border-color: #d4af37; /* Bordure Or au survol */
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(212, 175, 55, 0.15); /* Ombre dorée légère */
+        border-color: #d4af37;
+        transform: translateY(-3px);
     }
     
-    /* PRIX & BADGES */
-    .price-gold {
-        font-family: 'Playfair Display', serif;
-        font-size: 26px;
-        color: #d4af37;
-        font-weight: bold;
-    }
-    .badge-rare {
-        background-color: rgba(212, 175, 55, 0.15); /* Fond or transparent */
-        border: 1px solid #d4af37;
-        color: #d4af37;
-        padding: 5px 12px;
-        border-radius: 50px;
-        font-size: 11px;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        float: right;
-    }
-    .badge-standard {
+    /* Contenu Carte */
+    .card-content { padding: 15px; }
+    
+    /* Titres et Textes */
+    .card-title { font-size: 18px; font-weight: bold; color: white; margin-bottom: 5px; }
+    .card-sub { font-size: 13px; color: #888; margin-bottom: 10px; }
+    .card-price { font-size: 22px; color: #d4af37; font-weight: bold; }
+    
+    /* Badges Options (C'est ça qui remplace le code bizarre) */
+    .option-tag {
+        display: inline-block;
         background-color: #222;
-        color: #666;
-        padding: 5px 12px;
-        border-radius: 50px;
-        font-size: 11px;
+        color: #aaa;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-size: 10px;
+        margin-right: 5px;
+        margin-bottom: 5px;
+        border: 1px solid #333;
+    }
+    
+    /* Badge Rentabilité */
+    .badge-gain {
+        background-color: rgba(35, 134, 54, 0.2);
+        color: #2ea043;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
         float: right;
     }
-
-    /* BOUTON */
-    .stButton button {
-        background-color: transparent;
-        border: 1px solid #d4af37;
-        color: #d4af37;
-        border-radius: 4px;
-        transition: 0.3s;
-    }
-    .stButton button:hover {
-        background-color: #d4af37;
-        color: black;
-        border-color: #d4af37;
-    }
-
-    /* KPI BOXES */
-    div[data-testid="stMetric"] {
-        background-color: #111;
-        border: 1px solid #222;
-        border-radius: 0px; /* Carré pour faire sérieux */
-        border-left: 3px solid #d4af37; /* Petite touche or */
-    }
-    label[data-testid="stMetricLabel"] {
-        font-size: 14px;
-        color: #888;
-    }
+    
+    /* Image */
+    .card-img { width: 100%; height: 180px; object-fit: cover; }
 </style>
 """, unsafe_allow_html=True)
 
-# --- CHARGEMENT DONNÉES ---
+# --- PAYWALL (Capture Email) ---
+@st.dialog("💎 Rejoindre le Cercle Privé")
+def afficher_paywall(voiture_titre):
+    st.markdown(f"**{voiture_titre}**")
+    st.info("🔒 Cette opportunité est réservée aux membres.")
+    email = st.text_input("Votre Email :", placeholder="exemple@mail.com")
+    if st.button("Accéder au dossier", use_container_width=True):
+        if "@" in email:
+            st.success("Accès autorisé. Redirection...")
+            time.sleep(2)
+            st.rerun()
+        else:
+            st.error("Email invalide.")
+
+# --- CHARGEMENT ---
 @st.cache_data
 def charger_donnees():
     if not os.path.exists("annonces.csv"): return pd.DataFrame()
@@ -118,136 +96,95 @@ def charger_donnees():
     cols = ['prix', 'cote_argus', 'km', 'annee']
     for c in cols: df[c] = pd.to_numeric(df[c], errors='coerce')
     
-    # Algo "Le Flair"
-    def flairer_truffe(row):
-        # Calcul de la différence avec la cote
+    def score_algo(row):
         diff = row['cote_argus'] - row['prix']
-        # Score de "Rareté" (0 à 100)
         score = 50 + ((diff / row['cote_argus']) * 200)
         return min(100, max(0, int(score))), int(diff)
 
-    res = df.apply(flairer_truffe, axis=1, result_type='expand')
+    res = df.apply(score_algo, axis=1, result_type='expand')
     df['score'] = res[0]
     df['gain'] = res[1]
-    
     return df
 
 df = charger_donnees()
 
-# --- FONCTION PAYWALL (Le Levier Marketing) ---
-@st.dialog("💎 Rejoindre le Cercle Privé")
-def afficher_paywall(voiture_titre):
-    st.markdown(f"Vous tentez d'accéder à la fiche confidentielle :")
-    st.markdown(f"**{voiture_titre}**")
-    
-    st.divider()
-    
-    st.markdown("""
-    <div style="background-color: #1a1a1a; padding: 15px; border-radius: 8px; border-left: 3px solid #d4af37;">
-        <p style="margin:0; font-size:14px;">🔒 <b>Accès Restreint</b></p>
-        <p style="margin:0; font-size:12px; color: #888;">L'accès aux liens directs est réservé aux membres abonnés de <b>La Truffe Premium</b>.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.write("")
-    
-    email = st.text_input("Inscrivez-vous sur la liste d'attente V1 :", placeholder="votre@email.com")
-    
-    if st.button("Demander mon accès", use_container_width=True):
-        if "@" in email:
-            st.balloons() # Petite récompense visuelle
-            st.success("Demande reçue ! Nos courtiers vous contacteront sous 24h.")
-            time.sleep(3)
-            st.rerun()
-        else:
-            st.error("Veuillez entrer un email valide.")
-
-# --- SIDEBAR (Le Menu du Chef) ---
+# --- SIDEBAR (Filtres Massifs) ---
 with st.sidebar:
-    # TITRE LOGO
-    st.markdown("<h1 style='text-align: center; color: #d4af37;'>LA TRUFFE</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; font-style: italic; font-size: 12px; color: #666;'>Le flair de l'investisseur.</p>", unsafe_allow_html=True)
-    
-    st.write("") # Espace
-    
-    if st.button("👃 Flairer le marché", use_container_width=True):
-        st.cache_data.clear(); st.rerun()
-    
+    st.header("💎 La Truffe")
+    if st.button("🔄 Reload"): st.cache_data.clear(); st.rerun()
     st.write("---")
     
-    # Filtres
-    marques = ["Toutes"] + sorted(df['marque'].unique().tolist())
-    f_marque = st.selectbox("Marque", marques)
+    # 1. Marque (Toutes les 50 marques sont là)
+    all_marques = ["Toutes"] + sorted(df['marque'].unique().tolist())
+    f_marque = st.selectbox("Marque", all_marques)
     
+    # 2. Modèle (Adaptatif)
     f_modele = "Tous"
     if f_marque != "Toutes":
-        modeles = ["Tous"] + sorted(df[df['marque'] == f_marque]['modele'].unique().tolist())
-        f_modele = st.selectbox("Modèle", modeles)
+        mods = ["Tous"] + sorted(df[df['marque'] == f_marque]['modele'].unique().tolist())
+        f_modele = st.selectbox("Modèle", mods)
         
     st.write("")
-    budget = st.slider("Budget Investissement", 10000, 200000, 80000, step=5000)
-    
-    st.write("---")
-    pepite_only = st.checkbox("💎 Afficher uniquement les raretés")
+    budget = st.slider("Budget Max", 5000, 200000, 60000, step=1000)
+    pepite = st.checkbox("💎 Pépites uniquement")
 
 # --- FILTRAGE ---
-if df.empty: st.error("Base de données vide."); st.stop()
+if df.empty: st.error("Lancez scraper.py !"); st.stop()
 
 mask = (df['prix'] <= budget)
 if f_marque != "Toutes": mask &= (df['marque'] == f_marque)
 if f_modele != "Tous": mask &= (df['modele'] == f_modele)
-if pepite_only: mask &= (df['score'] >= 80)
+if pepite: mask &= (df['score'] >= 80)
 
 df_final = df[mask].sort_values(by='score', ascending=False)
 
-# --- KPI LUXE ---
+# --- KPI ---
 c1, c2, c3 = st.columns(3)
-c1.metric("Opportunités", len(df_final))
-c2.metric("Ticket Moyen", f"{int(df_final['prix'].mean())} €" if not df_final.empty else "-")
-best = df_final.iloc[0] if not df_final.empty else None
-if best is not None:
-    c3.metric("Plus Belle Truffe", f"Gain : {best['gain']} €")
+c1.metric("Résultats", len(df_final))
+c2.metric("Prix Moyen", f"{int(df_final['prix'].mean())} €" if not df_final.empty else "-")
+top_gain = df_final['gain'].max() if not df_final.empty else 0
+c3.metric("Meilleur Gain", f"+{top_gain} €")
 
 st.write("")
-st.subheader("Sélection du Jour")
-st.write("")
 
-# --- VUE LISTE (Design La Truffe) ---
+# --- AFFICHAGE GRILLE ---
 if df_final.empty:
-    st.info("Le marché est sec. Aucune truffe détectée avec ces critères.")
+    st.info("Aucun véhicule trouvé.")
 else:
-    for i in range(0, len(df_final), 2): # 2 cartes par ligne pour faire plus "grand format"
-        cols = st.columns(2)
-        for j in range(2):
+    # Grille de 3 colonnes
+    for i in range(0, len(df_final), 3):
+        cols = st.columns(3)
+        for j in range(3):
             if i + j < len(df_final):
                 row = df_final.iloc[i+j]
                 with cols[j]:
-                    # Logique Badge
-                    badge_html = f'<span class="badge-rare">💎 Rareté ({row["score"]}/100)</span>' if row['score'] > 80 else '<span class="badge-standard">Standard</span>'
                     
+                    # Construction des badges d'options (HTML propre)
+                    # On récupère la chaine "GPS | Cuir" et on la coupe
+                    options_list = str(row.get('options', 'Standard')).split('|')
+                    options_html = ""
+                    for opt in options_list[:3]: # On affiche max 3 options pour pas surcharger
+                        options_html += f'<span class="option-tag">{opt.strip()}</span>'
+                    
+                    gain_html = f'<span class="badge-gain">+{row["gain"]}€</span>' if row['gain'] > 0 else ""
+
                     st.markdown(f"""
                     <div class="truffle-card">
-                        <div style="height: 200px; overflow: hidden; border-radius: 8px; margin-bottom: 15px;">
-                            <img src="{row['img_url']}" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                        {badge_html}
-                        <h3 style="margin-top: 0; font-size: 20px;">{row['titre']}</h3>
-                        <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
-                            {row['annee']} | {row['km']} km | {row['ville']} | <span style="color:#d4af37">Finition {row['finition']}</span>
-                        </p>
-                        
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                            <div>
-                                <span style="font-size: 12px; color: #555;">Valeur estimée: {row['cote_argus']} €</span><br>
-                                <span class="price-gold">{row['prix']} €</span>
+                        <img src="{row['img_url']}" class="card-img">
+                        <div class="card-content">
+                            {gain_html}
+                            <div class="card-title">{row['titre']}</div>
+                            <div class="card-sub">{row['annee']} | {row['km']} km | {row['ville']}</div>
+                            <div style="margin-bottom:10px;">
+                                {options_html}
                             </div>
-                            <div style="text-align: right;">
-                                <span style="color: #238636; font-weight: bold; font-size: 14px;">Gain pot.: +{row['gain']} €</span>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                                <span class="card-price">{row['prix']} €</span>
+                                <span style="font-size:12px; color:#555;">Cote: {row['cote_argus']}€</span>
                             </div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # NOUVEAU BOUTON PAYWALL
-                    if st.button("🔒 Débloquer le lien", key=f"btn_{row['id']}", use_container_width=True):
+                    if st.button("🔒 Voir le dossier", key=f"b_{row['id']}", use_container_width=True):
                         afficher_paywall(row['titre'])
