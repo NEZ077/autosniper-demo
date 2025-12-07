@@ -6,85 +6,59 @@ from fpdf import FPDF
 
 # --- CONFIGURATION ---
 st.set_page_config(
-    page_title="La Truffe | Trading Auto",
+    page_title="La Truffe",
     page_icon="🍄",
-    layout="wide",
-    initial_sidebar_state="collapsed" # On replie la sidebar au démarrage pour immersion totale
+    layout="wide"
 )
 
-# --- CSS PRO & NETTOYAGE UI ---
+# --- CSS MOBILE & DESIGN ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&display=swap');
-
-    /* 1. CACHER LE MENU STREAMLIT (Look App Native) */
+    
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
-    /* FOND & TYPO */
     .stApp { background-color: #0d0f12; color: #e0e0e0; font-family: 'Outfit', sans-serif; }
     
-    /* SIDEBAR */
-    section[data-testid="stSidebar"] { background-color: #121418; border-right: 1px solid #2b2f36; }
-
-    /* CARTE VOITURE */
+    /* STYLE DES INPUTS (Pour faire pro) */
+    .stTextInput>div>div>input { color: white; background-color: #1a1d21; }
+    .stSelectbox>div>div>div { background-color: #1a1d21; color: white; }
+    
+    /* CARTE */
     .lc-card {
-        background-color: #181b20;
-        border: 1px solid #333;
-        border-radius: 12px;
-        margin-bottom: 25px;
-        overflow: hidden;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        background-color: #181b20; border: 1px solid #333; border-radius: 12px; margin-bottom: 25px; overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: all 0.3s ease;
     }
-    .lc-card:hover {
-        transform: translateY(-5px);
-        border-color: #d4af37;
-        box-shadow: 0 10px 20px rgba(212, 175, 55, 0.1);
-    }
+    .lc-card:hover { transform: translateY(-3px); border-color: #d4af37; }
 
-    /* IMAGE & BADGES */
+    /* IMAGE */
     .lc-img-container { position: relative; height: 180px; width: 100%; }
     .lc-img { width: 100%; height: 100%; object-fit: cover; }
     
-    /* Badge Rentabilité (Le "Pute à clic" vert fluo) */
     .badge-gain {
-        position: absolute; top: 10px; right: 10px;
-        background-color: #00e676; color: #000;
-        padding: 6px 12px; font-size: 14px; font-weight: 800;
-        border-radius: 4px; box-shadow: 0 2px 10px rgba(0,230,118,0.4);
+        position: absolute; top: 10px; right: 10px; background-color: #00e676; color: #000;
+        padding: 6px 12px; font-size: 14px; font-weight: 800; border-radius: 4px; box-shadow: 0 2px 10px rgba(0,230,118,0.4);
     }
     
-    .badge-source {
-        position: absolute; bottom: 10px; left: 10px;
-        background-color: rgba(0,0,0,0.7); color: #fff;
-        padding: 2px 6px; font-size: 10px; border-radius: 4px;
+    .badge-info {
+        position: absolute; bottom: 10px; left: 10px; background-color: rgba(0,0,0,0.8); color: #fff;
+        padding: 3px 8px; font-size: 10px; border-radius: 4px; border: 1px solid #555;
     }
 
     /* CONTENU */
-    .lc-content { padding: 18px; }
+    .lc-content { padding: 15px; }
     .lc-title { font-size: 18px; font-weight: 700; color: white; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .lc-subtitle { font-size: 13px; color: #888; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;}
-
-    /* PRIX & FOOTER */
-    .lc-footer { 
-        display: flex; justify-content: space-between; align-items: flex-end; 
-        margin-top: 15px; padding-top: 15px; border-top: 1px solid #2b2f36; 
-    }
+    .lc-subtitle { font-size: 13px; color: #888; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;}
+    
+    .lc-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 15px; padding-top: 15px; border-top: 1px solid #2b2f36; }
     .lc-price { font-size: 24px; font-weight: 800; color: #fff; }
     .lc-cote { font-size: 12px; color: #666; text-align: right; }
     .lc-cote span { color: #d4af37; font-weight: bold; text-decoration: line-through;}
 
-    /* TAGS OPTIONS */
     .opt-tag { background: #25282e; color: #aaa; padding: 3px 8px; border-radius: 4px; font-size: 11px; margin-right: 5px; }
-
-    /* HEADER PÉPITES */
-    .pepite-header { 
-        font-size: 24px; font-weight: 800; margin-bottom: 25px; 
-        background: linear-gradient(90deg, #d4af37, #fef9c3); 
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
+    .pepite-header { font-size: 22px; font-weight: 800; margin-bottom: 20px; color: #d4af37; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -100,107 +74,124 @@ def creer_pdf(voiture):
     pdf.ln(20)
     pdf.set_text_color(0, 0, 0)
     pdf.set_font("Arial", 'B', 16)
-    pdf.cell(0, 10, f"Dossier Investisseur : {voiture['titre']}", 0, 1, 'L')
+    pdf.cell(0, 10, f"Dossier : {voiture['titre']}", 0, 1, 'L')
     pdf.ln(10)
     pdf.set_font("Arial", '', 12)
-    pdf.cell(50, 10, f"Prix Achat : {voiture['prix']} EUR", 0, 1)
-    pdf.cell(50, 10, f"Revante Estimée : {voiture['cote_argus']} EUR", 0, 1)
+    pdf.cell(50, 10, f"Prix : {voiture['prix']} EUR", 0, 1)
+    pdf.cell(50, 10, f"Cote : {voiture['cote_argus']} EUR", 0, 1)
     gain = voiture['cote_argus'] - voiture['prix']
     pdf.set_text_color(34, 139, 34)
-    pdf.set_font("Arial", 'B', 14)
-    pdf.cell(50, 10, f"Marge Brute : +{gain} EUR", 0, 1)
+    pdf.cell(50, 10, f"Marge : +{gain} EUR", 0, 1)
     return pdf.output(dest='S').encode('latin-1')
 
-# --- PAYWALL AGRESSIF (Capture de Leads) ---
+# --- PAYWALL ---
 @st.dialog("🔒 Accès Restreint")
 def afficher_paywall(row):
     gain = row['cote_argus'] - row['prix']
-    
-    st.markdown(f"""
-    <h3 style='text-align:center; color:#d4af37;'>Opportunité Détectée</h3>
-    <p style='text-align:center; font-size:14px;'>Ce véhicule présente une marge potentielle immédiate de :</p>
-    <h1 style='text-align:center; color:#00e676;'>+ {gain} €</h1>
-    <hr>
-    <p style='font-size:13px; color:#aaa;'>
-    ⚠️ <b>Attention :</b> L'accès aux coordonnées vendeur est réservé aux membres fondateurs.
-    <br>Nous ouvrons <b>10 nouvelles places</b> pour la Bêta cette semaine.
-    </p>
-    """, unsafe_allow_html=True)
-    
-    email = st.text_input("Votre Email Pro :", placeholder="contact@garage.com")
-    
-    if st.button("Recevoir mon invitation prioritaire", use_container_width=True):
+    st.markdown(f"<h3 style='text-align:center; color:#d4af37;'>Marge : + {gain} €</h3>", unsafe_allow_html=True)
+    st.info("Accès réservé aux membres fondateurs.")
+    email = st.text_input("Email Pro :")
+    if st.button("Obtenir le dossier", use_container_width=True):
         if "@" in email:
-            # Ici tu pourrais sauvegarder l'email dans un fichier
             time.sleep(1)
             pdf_data = creer_pdf(row)
-            st.success("Dossier débloqué à titre exceptionnel.")
-            st.download_button(
-                label="📂 TÉLÉCHARGER LE DOSSIER PDF",
-                data=pdf_data,
-                file_name=f"Dossier_LaTruffe_{row['id']}.pdf",
-                mime="application/pdf",
-                use_container_width=True
-            )
-        else:
-            st.warning("Email invalide.")
+            st.success("Accès validé.")
+            st.download_button("📂 TÉLÉCHARGER PDF", data=pdf_data, file_name=f"Dossier_{row['id']}.pdf", mime="application/pdf", use_container_width=True)
 
 # --- CHARGEMENT ---
 @st.cache_data
 def charger_donnees():
     if not os.path.exists("annonces.csv"): return pd.DataFrame()
     df = pd.read_csv("annonces.csv")
-    cols = ['prix', 'cote_argus', 'km', 'annee']
+    cols = ['prix', 'cote_argus', 'km', 'annee', 'distance', 'chevaux']
     for c in cols: df[c] = pd.to_numeric(df[c], errors='coerce')
     df['gain'] = df['cote_argus'] - df['prix']
-    # Score de rareté pour le tri
     df['score'] = df.apply(lambda r: 50 + ((r['gain']) / r['cote_argus'] * 200), axis=1)
     return df
 
 df = charger_donnees()
 
-# --- HERO SECTION (Value Proposition Violente) ---
-# Plus de "st.title" classique, on y va fort
+# --- HEADER MOBILE ---
 st.markdown("""
-<h1 style='font-size: 50px; font-weight: 800; margin-bottom: 0;'>LA TRUFFE <span style='font-size:30px'>🍄</span></h1>
-<p style='font-size: 20px; color: #d4af37; margin-top: 0;'>Détecteur de Sous-Cotes Auto | <span style='color:#666'>Scan Temps Réel : Europe</span></p>
-<div style='background: #1a1d21; padding: 15px; border-left: 4px solid #00e676; margin-bottom: 30px;'>
-    <p style='margin:0; font-weight:bold; color: white;'>⚡ Ne ratez plus jamais une voiture vendue -20% sous le marché.</p>
-    <p style='margin:0; font-size: 12px; color: #888;'>Algorithme connecté : Mobile.de, AutoScout24, LeBoncoin.</p>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <div>
+        <h1 style='font-size: 32px; font-weight: 800; margin: 0; color:white;'>LA TRUFFE <span style='font-size:24px'>🍄</span></h1>
+        <p style='font-size: 14px; color: #d4af37; margin: 0;'>Détecteur de Sous-Cotes Auto</p>
+    </div>
+    <div style="text-align:right;">
+        <span style="background:#1a1d21; color:#2ea043; padding:5px 10px; border-radius:20px; font-size:12px; font-weight:bold;">● LIVE</span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
-# --- SIDEBAR ---
-with st.sidebar:
-    st.markdown('<h2 style="color:#d4af37; text-align:center;">FILTRES</h2>', unsafe_allow_html=True)
-    if st.button("🔄 Rafraîchir le Flux", use_container_width=True): st.cache_data.clear(); st.rerun()
+# --- ZONE DE FILTRES (MOBILE FRIENDLY) ---
+# On utilise un expander ouvert par défaut pour que ce soit visible sur mobile
+with st.expander("🔍 FILTRER LA RECHERCHE (Localisation, Budget, Finition...)", expanded=True):
+    
+    # Bouton refresh
+    if st.button("🔄 Lancer un nouveau scan", use_container_width=True): 
+        st.cache_data.clear()
+        st.rerun()
     
     if not df.empty:
-        f_marque = st.selectbox("Marque", ["Toutes"] + sorted(df['marque'].unique().tolist()))
+        # Ligne 1 : Les bases
+        c1, c2, c3 = st.columns(3)
+        marques = ["Toutes"] + sorted(df['marque'].unique().tolist())
+        f_marque = c1.selectbox("Marque", marques)
+        
         mods = ["Tous"]
         if f_marque != "Toutes": mods += sorted(df[df['marque'] == f_marque]['modele'].unique().tolist())
-        f_modele = st.selectbox("Modèle", mods)
-        f_carb = st.selectbox("Carburant", ["Tous"] + sorted(df['carburant'].unique().tolist()))
-        budget = st.slider("Budget Achat Max", 5000, 200000, 80000, step=5000)
+        f_modele = c2.selectbox("Modèle", mods)
+        
+        f_couleur = c3.multiselect("Couleur", sorted(df['couleur'].unique().tolist()), default=[])
+
+        st.write("---")
+        
+        # Ligne 2 : Slider Doubles (Min - Max)
+        c4, c5 = st.columns(2)
+        range_prix = c4.slider("Budget (€)", 5000, 200000, (10000, 80000), step=1000)
+        range_km = c5.slider("Kilométrage", 0, 200000, (0, 120000), step=5000)
+        
+        c6, c7 = st.columns(2)
+        range_annee = c6.slider("Année", 2015, 2025, (2018, 2024))
+        range_cv = c7.slider("Puissance (Ch)", 100, 800, (150, 500))
+        
+        st.write("---")
+        
+        # Ligne 3 : Localisation (Rayon)
+        f_rayon = st.slider("📍 Rayon de recherche (Distance max)", 10, 500, 100, format="%d km")
 
 # --- LISTING ---
-if df.empty: st.error("Initialisation du système..."); st.stop()
+if df.empty: st.error("Données en cours de chargement..."); st.stop()
 
-mask = (df['prix'] <= budget)
+# Application des filtres complexes
+mask = (df['prix'] >= range_prix[0]) & (df['prix'] <= range_prix[1])
+mask &= (df['km'] >= range_km[0]) & (df['km'] <= range_km[1])
+mask &= (df['annee'] >= range_annee[0]) & (df['annee'] <= range_annee[1])
+mask &= (df['chevaux'] >= range_cv[0]) & (df['chevaux'] <= range_cv[1])
+mask &= (df['distance'] <= f_rayon) # Filtre de rayon
+
 if f_marque != "Toutes": mask &= (df['marque'] == f_marque)
 if f_modele != "Tous": mask &= (df['modele'] == f_modele)
-if f_carb != "Tous": mask &= (df['carburant'] == f_carb)
+if f_couleur: mask &= (df['couleur'].isin(f_couleur))
 
 df_final = df[mask].sort_values(by='score', ascending=False)
 
-# 1. TOP PÉPITES (Les plus gros gains)
-df_pepites = df_final.head(3) # On prend les 3 meilleures absolues
+# Affichage Compteur
+st.markdown(f"**{len(df_final)} véhicules** correspondent à vos critères.")
+st.write("")
 
-if not df_pepites.empty:
-    st.markdown('<div class="pepite-header">🔥 OPPORTUNITÉS IMMÉDIATES</div>', unsafe_allow_html=True)
+if df_final.empty:
+    st.info("Aucun véhicule trouvé dans ce rayon. Élargissez la recherche.")
+else:
+    # 1. TOP PÉPITES (Head)
+    st.markdown('<div class="pepite-header">🔥 TOP OPPORTUNITÉS</div>', unsafe_allow_html=True)
+    df_pepites = df_final.head(3)
+    
     cols = st.columns(3)
     for i, (_, row) in enumerate(df_pepites.iterrows()):
         with cols[i]:
+            # Tags
             opt_list = str(row.get('options', '')).split('|')[:2]
             tags_html = "".join([f'<span class="opt-tag">{o.strip()}</span>' for o in opt_list])
             
@@ -209,12 +200,12 @@ if not df_pepites.empty:
                 <div class="lc-img-container">
                     <img src="{row['img_url']}" class="lc-img">
                     <div class="badge-gain">+{row['gain']} €</div>
-                    <div class="badge-source">AutoScout24</div>
+                    <div class="badge-info">{row['distance']} km • {row['chevaux']} Ch</div>
                 </div>
                 <div class="lc-content">
                     <div class="lc-title">{row['titre']}</div>
                     <div class="lc-subtitle">
-                        <span>{row['annee']}</span> • <span>{row['km']} km</span> • <span>{row['boite']}</span>
+                        <span>{row['annee']}</span> • <span>{row['km']} km</span> • <span>{row['couleur']}</span>
                     </div>
                     <div style="height:25px; overflow:hidden;">{tags_html}</div>
                     <div class="lc-footer">
@@ -226,39 +217,34 @@ if not df_pepites.empty:
                 </div>
             </div>
             """, unsafe_allow_html=True)
-            if st.button("🔒 BLOQUER CE VÉHICULE", key=f"pep_{row['id']}", use_container_width=True):
+            if st.button("🔒 RÉSERVER", key=f"pep_{row['id']}", use_container_width=True):
                 afficher_paywall(row)
 
-st.write("---")
-
-# 2. LISTE STANDARD
-st.subheader(f"Flux Live ({len(df_final)} véhicules)")
-if df_final.empty:
-    st.info("Aucune opportunité détectée avec ces critères.")
-else:
-    for i in range(3, len(df_final), 4): # On commence après les pépites
-        cols = st.columns(4)
-        for j in range(4):
+    # 2. LISTE STANDARD
+    st.write("---")
+    st.subheader("Flux Live")
+    
+    for i in range(3, len(df_final), 3):
+        cols = st.columns(3)
+        for j in range(3):
             if i + j < len(df_final):
                 row = df_final.iloc[i+j]
                 with cols[j]:
-                    opt_list = str(row.get('options', '')).split('|')[:2]
-                    tags_html = "".join([f'<span class="opt-tag">{o.strip()}</span>' for o in opt_list])
-                    
                     st.markdown(f"""
                     <div class="lc-card">
                         <div class="lc-img-container">
                             <img src="{row['img_url']}" class="lc-img">
                             <div class="badge-gain" style="font-size:12px; padding:4px 8px; background:#2ea043; color:white;">+{row['gain']} €</div>
+                            <div class="badge-info" style="bottom:auto; top:10px; left:10px;">{row['distance']} km</div>
                         </div>
                         <div class="lc-content">
                             <div class="lc-title" style="font-size:16px;">{row['titre']}</div>
-                            <div class="lc-subtitle">{row['annee']} | {row['km']} km</div>
+                            <div class="lc-subtitle">{row['annee']} | {row['chevaux']} Ch | {row['couleur']}</div>
                             <div class="lc-footer">
                                 <div class="lc-price" style="font-size:20px;">{row['prix']} €</div>
                             </div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
-                    if st.button("Analyser", key=f"lst_{row['id']}", use_container_width=True):
+                    if st.button("Voir", key=f"lst_{row['id']}", use_container_width=True):
                         afficher_paywall(row)
