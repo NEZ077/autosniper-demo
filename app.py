@@ -6,12 +6,24 @@ from fpdf import FPDF
 
 # --- CONFIGURATION ---
 st.set_page_config(
-    page_title="La Truffe",
+    page_title="La Truffe | Trading Auto",
     page_icon="🍄",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
-# --- CSS MOBILE & DESIGN ---
+# --- 1. SIMULATION LIVE (TOASTS) ---
+if 'init' not in st.session_state:
+    st.session_state.init = True
+    # On simule un délai de chargement pour faire "Vrai"
+    time.sleep(0.5)
+    st.toast('🟢 Connexion sécurisée aux serveurs Leboncoin...', icon='📡')
+    time.sleep(0.8)
+    st.toast('🟢 Connexion sécurisée aux serveurs AutoScout24...', icon='📡')
+    time.sleep(0.8)
+    st.toast('🚀 3 nouvelles opportunités détectées en temps réel !', icon='🔥')
+
+# --- CSS PRO ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&display=swap');
@@ -22,7 +34,7 @@ st.markdown("""
 
     .stApp { background-color: #0d0f12; color: #e0e0e0; font-family: 'Outfit', sans-serif; }
     
-    /* STYLE DES INPUTS (Pour faire pro) */
+    /* STYLE DES INPUTS */
     .stTextInput>div>div>input { color: white; background-color: #1a1d21; }
     .stSelectbox>div>div>div { background-color: #1a1d21; color: white; }
     
@@ -31,7 +43,7 @@ st.markdown("""
         background-color: #181b20; border: 1px solid #333; border-radius: 12px; margin-bottom: 25px; overflow: hidden;
         box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: all 0.3s ease;
     }
-    .lc-card:hover { transform: translateY(-3px); border-color: #d4af37; }
+    .lc-card:hover { transform: translateY(-5px); border-color: #d4af37; box-shadow: 0 10px 20px rgba(212, 175, 55, 0.15); }
 
     /* IMAGE */
     .lc-img-container { position: relative; height: 180px; width: 100%; }
@@ -74,7 +86,7 @@ def creer_pdf(voiture):
     pdf.ln(20)
     pdf.set_text_color(0, 0, 0)
     pdf.set_font("Arial", 'B', 16)
-    pdf.cell(0, 10, f"Dossier : {voiture['titre']}", 0, 1, 'L')
+    pdf.cell(0, 10, f"Dossier Investisseur : {voiture['titre']}", 0, 1, 'L')
     pdf.ln(10)
     pdf.set_font("Arial", '', 12)
     pdf.cell(50, 10, f"Prix : {voiture['prix']} EUR", 0, 1)
@@ -84,19 +96,24 @@ def creer_pdf(voiture):
     pdf.cell(50, 10, f"Marge : +{gain} EUR", 0, 1)
     return pdf.output(dest='S').encode('latin-1')
 
-# --- PAYWALL ---
+# --- PAYWALL AGRESSIF ---
 @st.dialog("🔒 Accès Restreint")
 def afficher_paywall(row):
     gain = row['cote_argus'] - row['prix']
-    st.markdown(f"<h3 style='text-align:center; color:#d4af37;'>Marge : + {gain} €</h3>", unsafe_allow_html=True)
-    st.info("Accès réservé aux membres fondateurs.")
-    email = st.text_input("Email Pro :")
-    if st.button("Obtenir le dossier", use_container_width=True):
+    st.markdown(f"""
+    <h3 style='text-align:center; color:#d4af37;'>Marge Immédiate : + {gain} €</h3>
+    <hr>
+    <p style='font-size:14px;'>🔒 <b>Accès Réservé aux Membres Fondateurs.</b></p>
+    <p style='font-size:13px; color:#aaa;'>Nous ouvrons <b>10 nouvelles places</b> pour la Bêta cette semaine.<br>Laissez votre email pour recevoir votre invitation.</p>
+    """, unsafe_allow_html=True)
+    
+    email = st.text_input("Votre Email Pro :")
+    if st.button("Obtenir mon accès prioritaire", use_container_width=True):
         if "@" in email:
             time.sleep(1)
             pdf_data = creer_pdf(row)
             st.success("Accès validé.")
-            st.download_button("📂 TÉLÉCHARGER PDF", data=pdf_data, file_name=f"Dossier_{row['id']}.pdf", mime="application/pdf", use_container_width=True)
+            st.download_button("📂 TÉLÉCHARGER LE DOSSIER", data=pdf_data, file_name=f"Dossier_{row['id']}.pdf", mime="application/pdf", use_container_width=True)
 
 # --- CHARGEMENT ---
 @st.cache_data
@@ -111,30 +128,21 @@ def charger_donnees():
 
 df = charger_donnees()
 
-# --- HEADER MOBILE ---
+# --- HERO HEADER ---
 st.markdown("""
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-    <div>
-        <h1 style='font-size: 32px; font-weight: 800; margin: 0; color:white;'>LA TRUFFE <span style='font-size:24px'>🍄</span></h1>
-        <p style='font-size: 14px; color: #d4af37; margin: 0;'>Détecteur de Sous-Cotes Auto</p>
-    </div>
-    <div style="text-align:right;">
-        <span style="background:#1a1d21; color:#2ea043; padding:5px 10px; border-radius:20px; font-size:12px; font-weight:bold;">● LIVE</span>
-    </div>
+<div style="margin-bottom:20px;">
+    <h1 style='font-size: 32px; font-weight: 800; margin: 0; color:white;'>LA TRUFFE <span style='font-size:24px'>🍄</span></h1>
+    <p style='font-size: 14px; color: #d4af37; margin: 0;'>Détecteur de Sous-Cotes | <span style='color:#666'>Europe (Scan Live)</span></p>
 </div>
 """, unsafe_allow_html=True)
 
-# --- ZONE DE FILTRES (MOBILE FRIENDLY) ---
-# On utilise un expander ouvert par défaut pour que ce soit visible sur mobile
-with st.expander("🔍 FILTRER LA RECHERCHE (Localisation, Budget, Finition...)", expanded=True):
-    
-    # Bouton refresh
+# --- FILTRES (EXPANDER) ---
+with st.expander("🔍 CONFIGURER LE SCAN (Localisation, Budget...)", expanded=True):
     if st.button("🔄 Lancer un nouveau scan", use_container_width=True): 
         st.cache_data.clear()
         st.rerun()
     
     if not df.empty:
-        # Ligne 1 : Les bases
         c1, c2, c3 = st.columns(3)
         marques = ["Toutes"] + sorted(df['marque'].unique().tolist())
         f_marque = c1.selectbox("Marque", marques)
@@ -142,56 +150,47 @@ with st.expander("🔍 FILTRER LA RECHERCHE (Localisation, Budget, Finition...)"
         mods = ["Tous"]
         if f_marque != "Toutes": mods += sorted(df[df['marque'] == f_marque]['modele'].unique().tolist())
         f_modele = c2.selectbox("Modèle", mods)
-        
         f_couleur = c3.multiselect("Couleur", sorted(df['couleur'].unique().tolist()), default=[])
 
         st.write("---")
-        
-        # Ligne 2 : Slider Doubles (Min - Max)
         c4, c5 = st.columns(2)
-        range_prix = c4.slider("Budget (€)", 5000, 200000, (10000, 80000), step=1000)
-        range_km = c5.slider("Kilométrage", 0, 200000, (0, 120000), step=5000)
-        
-        c6, c7 = st.columns(2)
-        range_annee = c6.slider("Année", 2015, 2025, (2018, 2024))
-        range_cv = c7.slider("Puissance (Ch)", 100, 800, (150, 500))
-        
-        st.write("---")
-        
-        # Ligne 3 : Localisation (Rayon)
-        f_rayon = st.slider("📍 Rayon de recherche (Distance max)", 10, 500, 100, format="%d km")
+        range_prix = c4.slider("Budget (€)", 10000, 200000, (20000, 120000), step=1000)
+        range_km = c5.slider("Kilométrage", 0, 150000, (0, 90000), step=5000)
+        f_rayon = st.slider("📍 Rayon de recherche", 10, 500, 200, format="%d km")
 
 # --- LISTING ---
 if df.empty: st.error("Données en cours de chargement..."); st.stop()
 
-# Application des filtres complexes
 mask = (df['prix'] >= range_prix[0]) & (df['prix'] <= range_prix[1])
 mask &= (df['km'] >= range_km[0]) & (df['km'] <= range_km[1])
-mask &= (df['annee'] >= range_annee[0]) & (df['annee'] <= range_annee[1])
-mask &= (df['chevaux'] >= range_cv[0]) & (df['chevaux'] <= range_cv[1])
-mask &= (df['distance'] <= f_rayon) # Filtre de rayon
-
+mask &= (df['distance'] <= f_rayon)
 if f_marque != "Toutes": mask &= (df['marque'] == f_marque)
 if f_modele != "Tous": mask &= (df['modele'] == f_modele)
 if f_couleur: mask &= (df['couleur'].isin(f_couleur))
 
 df_final = df[mask].sort_values(by='score', ascending=False)
 
-# Affichage Compteur
-st.markdown(f"**{len(df_final)} véhicules** correspondent à vos critères.")
-st.write("")
+# --- 2. BARRE DE STATUT (REASSURANCE) ---
+st.markdown(f"""
+    <div style="background-color: #1a1d21; padding: 10px; border-radius: 5px; border-left: 4px solid #d4af37; margin-bottom: 20px; border: 1px solid #333;">
+        <p style="margin:0; color: #ccc; font-size:13px;">
+        ⚡ <strong>Scan en cours :</strong> {f_marque if f_marque != 'Toutes' else 'Global'} | 
+        <strong>Cible :</strong> {len(df_final)} véhicules détectés | 
+        <strong>Latence :</strong> 0.4s
+        </p>
+    </div>
+""", unsafe_allow_html=True)
 
 if df_final.empty:
-    st.info("Aucun véhicule trouvé dans ce rayon. Élargissez la recherche.")
+    st.info("Aucun véhicule trouvé dans ce rayon.")
 else:
-    # 1. TOP PÉPITES (Head)
+    # PÉPITES
     st.markdown('<div class="pepite-header">🔥 TOP OPPORTUNITÉS</div>', unsafe_allow_html=True)
     df_pepites = df_final.head(3)
     
     cols = st.columns(3)
     for i, (_, row) in enumerate(df_pepites.iterrows()):
         with cols[i]:
-            # Tags
             opt_list = str(row.get('options', '')).split('|')[:2]
             tags_html = "".join([f'<span class="opt-tag">{o.strip()}</span>' for o in opt_list])
             
@@ -217,13 +216,12 @@ else:
                 </div>
             </div>
             """, unsafe_allow_html=True)
-            if st.button("🔒 RÉSERVER", key=f"pep_{row['id']}", use_container_width=True):
+            if st.button("🔒 BLOQUER LE VÉHICULE", key=f"pep_{row['id']}", use_container_width=True):
                 afficher_paywall(row)
 
-    # 2. LISTE STANDARD
+    # RESTE
     st.write("---")
     st.subheader("Flux Live")
-    
     for i in range(3, len(df_final), 3):
         cols = st.columns(3)
         for j in range(3):
@@ -235,7 +233,6 @@ else:
                         <div class="lc-img-container">
                             <img src="{row['img_url']}" class="lc-img">
                             <div class="badge-gain" style="font-size:12px; padding:4px 8px; background:#2ea043; color:white;">+{row['gain']} €</div>
-                            <div class="badge-info" style="bottom:auto; top:10px; left:10px;">{row['distance']} km</div>
                         </div>
                         <div class="lc-content">
                             <div class="lc-title" style="font-size:16px;">{row['titre']}</div>
