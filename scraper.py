@@ -4,137 +4,117 @@ from datetime import datetime
 
 CSV_FILE = "annonces.csv"
 
-# --- 1. LA BASE DE DONNÉES ULTIME (Type Leboncoin) ---
+# --- 1. BASE DE DONNÉES MASSIVE (GOD MODE) ---
 DB_AUTO = {
-    # --- FRANÇAISES ---
-    "Peugeot": ["208", "2008", "308", "3008", "5008", "408", "508", "Rifter", "Partner", "108", "RCZ"],
-    "Renault": ["Clio", "Captur", "Megane", "Arkana", "Austral", "Espace", "Rafale", "Zoe", "Twingo", "Kangoo", "Scenic", "Talisman", "Koleos"],
-    "Citroen": ["C3", "C3 Aircross", "C4", "C4 X", "C5 Aircross", "C5 X", "Berlingo", "Ami", "C1", "Jumpy"],
-    "Dacia": ["Sandero", "Duster", "Jogger", "Spring", "Logan", "Lodgy"],
-    "DS": ["DS 3", "DS 4", "DS 7", "DS 9", "DS 5"],
-    "Alpine": ["A110", "A290"],
-
-    # --- ALLEMANDES ---
-    "Audi": ["A1", "A3", "A4", "A5", "A6", "A7", "A8", "Q2", "Q3", "Q4", "Q5", "Q7", "Q8", "TT", "R8", "RS3", "RS6", "e-tron"],
-    "BMW": ["Série 1", "Série 2", "Série 3", "Série 4", "Série 5", "Série 7", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "Z4", "i4", "iX"],
-    "Mercedes": ["Classe A", "Classe B", "Classe C", "Classe E", "Classe S", "CLA", "GLA", "GLB", "GLC", "GLE", "Classe G", "AMG GT", "EQA", "Vito"],
-    "Volkswagen": ["Polo", "Golf", "T-Roc", "Tiguan", "Passat", "Arteon", "Touareg", "ID.3", "ID.4", "ID. Buzz", "T-Cross", "Caddy"],
-    "Porsche": ["911", "718 Cayman", "Boxster", "Macan", "Cayenne", "Panamera", "Taycan"],
-    "Opel": ["Corsa", "Astra", "Mokka", "Crossland", "Grandland", "Insignia", "Zafira"],
-    "Smart": ["Fortwo", "Forfour", "#1", "#3"],
-
-    # --- ITALIENNES ---
-    "Fiat": ["500", "500X", "Panda", "Tipo", "600", "Punto", "Doblo", "Spider 124"],
-    "Alfa Romeo": ["Giulia", "Stelvio", "Tonale", "Giulietta", "MiTo"],
-    "Ferrari": ["488", "F8 Tributo", "Roma", "Portofino", "812 Superfast", "296 GTB", "SF90", "458 Italia"],
-    "Lamborghini": ["Urus", "Huracan", "Aventador"],
-    "Maserati": ["Ghibli", "Levante", "Quattroporte", "Grecale", "GranTurismo"],
-    "Abarth": ["500", "595", "695"],
-
-    # --- ASIATIQUES ---
-    "Toyota": ["Yaris", "Corolla", "C-HR", "RAV4", "Land Cruiser", "Highlander", "Supra", "Aygo X", "Prius", "Hilux"],
-    "Nissan": ["Micra", "Juke", "Qashqai", "X-Trail", "GTR", "Leaf", "Navara", "370Z"],
-    "Kia": ["Picanto", "Rio", "Ceed", "Sportage", "Sorento", "EV6", "Niro", "Stonic"],
-    "Hyundai": ["i10", "i20", "i30", "Kona", "Tucson", "Santa Fe", "IONIQ 5"],
-    "Suzuki": ["Swift", "Ignis", "Vitara", "Jimny", "S-Cross"],
-    "Mazda": ["MX-5", "CX-30", "CX-5", "CX-60", "Mazda2", "Mazda3", "Mazda6"],
-    "Honda": ["Civic", "HR-V", "CR-V", "Jazz"],
-    "Lexus": ["UX", "NX", "RX", "ES", "LBX"],
-
-    # --- ANGLAISES / AMÉRICAINES / AUTRES ---
-    "Ford": ["Fiesta", "Focus", "Puma", "Kuga", "Mustang", "Ranger", "Bronco", "Mach-E"],
-    "Tesla": ["Model 3", "Model Y", "Model S", "Model X", "Cybertruck"],
-    "Land Rover": ["Defender", "Range Rover", "Evoque", "Velar", "Sport"],
-    "Mini": ["Cooper", "Clubman", "Countryman"],
-    "Volvo": ["XC40", "XC60", "XC90", "S60", "V60", "C40"],
-    "Seat": ["Ibiza", "Leon", "Ateca", "Arona", "Tarraco"],
-    "Skoda": ["Fabia", "Octavia", "Superb", "Kamiq", "Karoq", "Kodiaq", "Enyaq"],
+    "Abarth": ["595", "695", "124 Spider", "500e"],
+    "Alfa Romeo": ["Giulia", "Stelvio", "Tonale", "4C", "Giulietta", "MiTo"],
+    "Alpine": ["A110", "A110 GT", "A110 S", "A110 R", "A290"],
+    "Aston Martin": ["Vantage", "DB11", "DB12", "DBS", "DBX", "Valhalla"],
+    "Audi": ["A1", "A3", "A4", "A5", "A6", "A7", "A8", "Q2", "Q3", "Q5", "Q7", "Q8", "TT", "R8", "RS3", "RS6", "e-tron"],
+    "Bentley": ["Continental GT", "Bentayga", "Flying Spur"],
+    "BMW": ["Série 1", "Série 3", "Série 4", "Série 5", "X1", "X3", "X5", "X6", "M2", "M3", "M4", "i4", "iX"],
+    "Bugatti": ["Chiron", "Veyron", "Mistral"],
+    "Citroen": ["C3", "C3 Aircross", "C4", "C5 Aircross", "C5 X", "Berlingo", "Ami"],
     "Cupra": ["Formentor", "Born", "Leon", "Ateca"],
-    "Jaguar": ["F-Type", "F-Pace", "E-Pace", "XE", "XF"],
-    "Jeep": ["Renegade", "Compass", "Wrangler", "Avenger"],
-    
-    # --- SANS PERMIS & RARES ---
-    "Aixam": ["City", "Coupé", "Crossline"],
-    "Ligier": ["JS50", "JS60"],
-    "Microcar": ["M.Go", "Dué"],
-    "Bentley": ["Continental GT", "Bentayga"],
-    "Rolls-Royce": ["Phantom", "Cullinan"],
-    "Lotus": ["Emira", "Elise"]
-}
-
-# --- IMAGES PAR DÉFAUT (Pour éviter les trous) ---
-# Si une marque n'a pas d'image spécifique, on utilise une image générique de qualité
-IMG_DEFAULT = "https://images.caradisiac.com/logos-ref/modele/modele--peugeot-208-2/S0-modele--peugeot-208-2.jpg"
-
-IMAGES_MARQUES = {
-    "Porsche": "https://images.caradisiac.com/logos-ref/modele/modele--porsche-911-type-992/S0-modele--porsche-911-type-992.jpg",
-    "Ferrari": "https://sf2.auto-moto.com/wp-content/uploads/sites/9/2020/09/ferrari-roma-2020-01-750x410.jpg",
-    "Lamborghini": "https://images.caradisiac.com/logos/modele/modele--lamborghini-urus/S7-modele--lamborghini-urus.jpg",
-    "BMW": "https://www.largus.fr/images/images/bmw-m4-competition-2021-av-g-dyn_1.jpg",
-    "Audi": "https://images.caradisiac.com/logos-ref/modele/modele--audi-rs3/S0-modele--audi-rs3.jpg",
-    "Mercedes": "https://sf1.auto-moto.com/wp-content/uploads/sites/9/2021/08/mercedes-c63-s-amg-wagon-1-750x410.jpg",
-    "Tesla": "https://images.caradisiac.com/logos-ref/modele/modele--tesla-model-3/S0-modele--tesla-model-3.jpg",
-    "Peugeot": "https://images.caradisiac.com/logos-ref/modele/modele--peugeot-308-3/S0-modele--peugeot-308-3.jpg",
-    "Renault": "https://images.caradisiac.com/logos-ref/modele/modele--renault-clio-5/S0-modele--renault-clio-5.jpg",
-    "Dacia": "https://images.caradisiac.com/logos-ref/modele/modele--dacia-duster-2/S0-modele--dacia-duster-2.jpg",
-    "Volkswagen": "https://images.caradisiac.com/logos-ref/modele/modele--volkswagen-golf-8/S0-modele--volkswagen-golf-8.jpg",
-    "Fiat": "https://images.caradisiac.com/logos-ref/modele/modele--fiat-500-2/S0-modele--fiat-500-2.jpg",
-    "Aixam": "https://www.aixam.com/ressources/images/gamme/emotion/city/sport/aixam-city-sport-blanc-nacré.jpg"
+    "Dacia": ["Sandero", "Duster", "Jogger", "Spring"],
+    "DS": ["DS 3", "DS 4", "DS 7", "DS 9"],
+    "Ferrari": ["488 Pista", "F8 Tributo", "Roma", "812 Superfast", "296 GTB", "SF90"],
+    "Fiat": ["500", "500e", "500X", "Panda", "Tipo"],
+    "Ford": ["Fiesta", "Focus", "Puma", "Kuga", "Mustang", "Ranger", "Bronco"],
+    "Honda": ["Civic", "HR-V", "CR-V", "Jazz", "NSX"],
+    "Hyundai": ["i20", "i30", "Kona", "Tucson", "Santa Fe", "IONIQ 5"],
+    "Jaguar": ["F-Type", "F-Pace", "E-Pace", "I-Pace"],
+    "Jeep": ["Renegade", "Compass", "Wrangler", "Grand Cherokee", "Avenger"],
+    "Kia": ["Picanto", "Rio", "Ceed", "Sportage", "Sorento", "EV6", "Niro"],
+    "Lamborghini": ["Urus", "Huracan", "Aventador", "Revuelto"],
+    "Land Rover": ["Defender", "Range Rover", "Range Rover Sport", "Evoque", "Velar"],
+    "Lexus": ["UX", "NX", "RX", "ES", "LC"],
+    "Lotus": ["Emira", "Evija", "Eletre"],
+    "Maserati": ["Ghibli", "Levante", "Quattroporte", "MC20", "Grecale"],
+    "Mazda": ["MX-5", "CX-30", "CX-5", "CX-60", "Mazda3"],
+    "McLaren": ["720S", "570S", "Artura", "GT"],
+    "Mercedes": ["Classe A", "Classe C", "Classe E", "CLA", "GLA", "GLC", "GLE", "Classe G", "AMG GT", "SL"],
+    "Mini": ["Cooper", "Cooper S", "Clubman", "Countryman"],
+    "Nissan": ["Micra", "Juke", "Qashqai", "X-Trail", "GTR", "Ariya"],
+    "Opel": ["Corsa", "Astra", "Mokka", "Grandland"],
+    "Peugeot": ["208", "308", "408", "508", "2008", "3008", "5008", "Rifter"],
+    "Porsche": ["911", "718 Cayman", "Boxster", "Panamera", "Macan", "Cayenne", "Taycan"],
+    "Renault": ["Clio", "Captur", "Megane", "Arkana", "Austral", "Espace", "Rafale", "Zoe", "Twingo"],
+    "Rolls-Royce": ["Phantom", "Ghost", "Cullinan", "Spectre"],
+    "Seat": ["Ibiza", "Leon", "Ateca", "Arona"],
+    "Skoda": ["Fabia", "Octavia", "Superb", "Kamiq", "Karoq", "Kodiaq", "Enyaq"],
+    "Smart": ["Fortwo", "Forfour", "#1", "#3"],
+    "Suzuki": ["Swift", "Ignis", "Vitara", "Jimny", "S-Cross"],
+    "Tesla": ["Model 3", "Model Y", "Model S", "Model X", "Cybertruck"],
+    "Toyota": ["Yaris", "Corolla", "C-HR", "RAV4", "Land Cruiser", "Supra", "Aygo X"],
+    "Volkswagen": ["Polo", "Golf", "T-Roc", "Tiguan", "Passat", "Arteon", "Touareg", "ID.3", "ID.4", "ID. Buzz"],
+    "Volvo": ["XC40", "XC60", "XC90", "S60", "V60", "C40"]
 }
 
 # --- PARAMETRES ---
-CARBURANTS = ["Essence", "Diesel", "Hybride", "Électrique", "GPL"]
-BOITES = ["Automatique", "Manuelle"]
-COULEURS = ["Noir", "Gris", "Blanc", "Bleu", "Rouge", "Vert", "Jaune", "Orange", "Beige"]
-VILLES = ["Paris", "Lyon", "Marseille", "Bordeaux", "Lille", "Nantes", "Strasbourg", "Montpellier", "Nice", "Toulouse"]
-OPTIONS_LIST = ["Toit Ouvrant", "Cuir", "GPS", "CarPlay", "Caméra de recul", "Radars AV/AR", "Régulateur Adaptatif", "Sièges Chauffants", "Attelage", "Jantes Alu"]
+CARBURANTS = ["Essence", "Diesel", "Hybride", "Électrique"]
+BOITES = ["Automatique", "Manuelle", "Séquentielle"]
+COULEURS = ["Noir", "Gris Nardo", "Blanc", "Bleu Nuit", "Rouge", "Vert Anglais", "Jaune", "Orange", "Mat"]
+VILLES = ["Paris 16e", "Lyon", "Marseille", "Bordeaux", "Lille", "Monaco", "Genève", "Luxembourg", "Nice", "Toulouse", "Cannes"]
+OPTIONS_LIST = ["Toit Panoramique", "Cuir Nappa", "Caméra 360°", "CarPlay", "Son Burmester", "Sièges Ventilés", "Pack Carbone", "Matrix LED", "Affichage Tête Haute", "Suspension Pneumatique", "Pack Nuit", "Jantes 21 pouces"]
 
 def init_csv():
     with open(CSV_FILE, mode='w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow(["id", "marque", "modele", "titre", "prix", "cote_argus", "km", "annee", "ville", "distance", "url", "img_url", "options", "carburant", "boite", "couleur", "chevaux", "date_scrape"])
 
-def get_image_auto(marque):
-    # Retourne l'image de la marque si elle existe, sinon une image par défaut
-    return IMAGES_MARQUES.get(marque, IMG_DEFAULT)
-
 def generer_voiture():
     marque = random.choice(list(DB_AUTO.keys()))
     modele = random.choice(DB_AUTO[marque])
     
-    # Prix de base selon le standing
-    if marque in ["Ferrari", "Lamborghini", "Porsche", "Bentley", "Rolls-Royce", "Maserati"]:
-        prix_base = 120000
-        chevaux = random.randint(350, 700)
-    elif marque in ["Audi", "BMW", "Mercedes", "Land Rover", "Jaguar", "Tesla", "Volvo", "Lexus"]:
-        prix_base = 45000
-        chevaux = random.randint(150, 400)
-    elif marque in ["Aixam", "Ligier", "Microcar"]: # Sans permis
-        prix_base = 12000
-        chevaux = random.randint(5, 15)
-    else:
-        prix_base = 22000
-        chevaux = random.randint(90, 200)
+    # Prix & Puissance
+    prix_base = 30000
+    chevaux = random.randint(110, 200)
     
-    annee = random.randint(2014, 2024)
-    km = random.randint(5000, 160000)
+    # Ajustement Luxe
+    if marque in ["Ferrari", "Lamborghini", "Bugatti", "Rolls-Royce", "McLaren"]:
+        prix_base = 250000
+        chevaux = random.randint(500, 1000)
+    elif marque in ["Porsche", "Aston Martin", "Bentley"]:
+        prix_base = 110000
+        chevaux = random.randint(350, 650)
+    elif marque in ["Audi", "BMW", "Mercedes", "Maserati", "Jaguar", "Land Rover"]:
+        prix_base = 55000
+        chevaux = random.randint(180, 500)
+    elif marque in ["Dacia", "Fiat", "Suzuki", "Smart"]:
+        prix_base = 18000
+        chevaux = random.randint(70, 130)
+    
+    annee = random.randint(2016, 2024)
+    km = random.randint(1000, 160000)
     
     # Calcul Cote
     age = 2025 - annee
     decote = (age * 0.08) + (km / 150000 * 0.15)
     cote = int(prix_base * (1 - decote))
-    if cote < 3000: cote = 3000
+    if cote < 5000: cote = 5000
     
-    # Prix Vendeur (Opportunité ou pas)
-    variation = random.uniform(0.8, 1.2)
+    # Prix vendeur (Création d'opportunité)
+    variation = random.uniform(0.75, 1.2) # De -25% à +20%
     prix = int(cote * variation)
     
-    distance = random.randint(1, 500)
-    opts = " | ".join(random.sample(OPTIONS_LIST, k=random.randint(2, 5)))
-    img_url = get_image_auto(marque)
+    distance = random.randint(5, 500)
+    opts = " | ".join(random.sample(OPTIONS_LIST, k=random.randint(3, 5)))
+    
+    # --- LA CORRECTION IMAGE ---
+    # On utilise LoremFlickr qui génère une image à la volée. C'est INCREVABLE.
+    # On ajoute ?lock=random pour que chaque voiture ait une photo différente.
+    rand_id = random.randint(1, 99999)
+    # On essaie de cibler la marque dans l'URL
+    keyword = marque.lower().replace(" ", "")
+    img_url = f"https://loremflickr.com/640/480/{keyword},car?lock={rand_id}"
+    
+    # Pour les marques très luxe, on force un mot clé "supercar" pour avoir de belles photos
+    if marque in ["Ferrari", "Lamborghini", "Bugatti", "McLaren"]:
+        img_url = f"https://loremflickr.com/640/480/supercar,luxury?lock={rand_id}"
     
     return [
-        f"LBC-{random.randint(100000,999999)}",
+        f"ref-{random.randint(10000,99999)}",
         marque, modele, f"{marque} {modele}",
         str(prix), str(cote), str(km), str(annee),
         random.choice(VILLES), str(distance), 
@@ -146,13 +126,13 @@ def generer_voiture():
     ]
 
 def run_simulation():
-    print("🚀 Génération DATABASE LEBONCOIN COMPLETE...")
+    print("🚀 Génération DATABASE MONDIALE (Images Garanties)...")
     init_csv()
     with open(CSV_FILE, mode='a', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        # On génère 800 voitures pour avoir une densité énorme dans les filtres
-        for _ in range(800): writer.writerow(generer_voiture())
-    print(f"✅ Terminé : 800 annonces générées couvrant {len(DB_AUTO)} marques.")
+        # On génère 600 voitures
+        for _ in range(600): writer.writerow(generer_voiture())
+    print("✅ Terminé : 600 véhicules prêts.")
 
 if __name__ == "__main__":
     run_simulation()
