@@ -4,54 +4,52 @@ from datetime import datetime
 
 CSV_FILE = "annonces.csv"
 
-# --- 1. BASE DE DONNÉES MASSIVE ---
+# --- CONFIGURATION ---
 DB_AUTO = {
     "Abarth": ["595", "695", "124 Spider"],
-    "Alfa Romeo": ["Giulia", "Stelvio", "Tonale", "4C"],
+    "Alfa Romeo": ["Giulia", "Stelvio", "Tonale"],
     "Alpine": ["A110", "A110 GT", "A110 S"],
     "Aston Martin": ["Vantage", "DB11", "DBX"],
-    "Audi": ["A1", "A3", "A4", "A5", "Q2", "Q3", "Q5", "Q7", "Q8", "TT", "R8", "RS3", "RS6", "e-tron"],
+    "Audi": ["A1", "A3", "A4", "A5", "Q3", "Q5", "Q7", "Q8", "RS3", "RS6", "e-tron"],
     "Bentley": ["Continental GT", "Bentayga"],
-    "BMW": ["Série 1", "Série 3", "Série 4", "X1", "X3", "X5", "X6", "M2", "M3", "M4", "i4", "iX"],
+    "BMW": ["Série 1", "Série 3", "Série 4", "X1", "X3", "X5", "X6", "M2", "M3", "M4"],
     "Bugatti": ["Chiron", "Veyron"],
-    "Citroen": ["C3", "C3 Aircross", "C4", "C5 Aircross", "Berlingo", "Ami"],
-    "Cupra": ["Formentor", "Born", "Leon", "Ateca"],
+    "Citroen": ["C3", "C4", "C5 Aircross", "Berlingo"],
+    "Cupra": ["Formentor", "Born", "Leon"],
     "Dacia": ["Sandero", "Duster", "Jogger", "Spring"],
-    "DS": ["DS 3", "DS 4", "DS 7", "DS 9"],
-    "Ferrari": ["488 Pista", "F8 Tributo", "Roma", "812 Superfast", "SF90"],
-    "Fiat": ["500", "500e", "500X", "Panda", "Tipo"],
-    "Ford": ["Fiesta", "Focus", "Puma", "Kuga", "Mustang", "Ranger"],
+    "DS": ["DS 3", "DS 4", "DS 7"],
+    "Ferrari": ["F8 Tributo", "Roma", "SF90"],
+    "Fiat": ["500", "500e", "Panda"],
+    "Ford": ["Fiesta", "Puma", "Kuga", "Mustang", "Ranger"],
     "Honda": ["Civic", "HR-V", "CR-V"],
-    "Hyundai": ["i20", "Tucson", "Santa Fe", "IONIQ 5"],
-    "Jaguar": ["F-Type", "F-Pace", "I-Pace"],
-    "Jeep": ["Renegade", "Compass", "Wrangler", "Avenger"],
-    "Kia": ["Picanto", "Sportage", "EV6", "Niro"],
-    "Lamborghini": ["Urus", "Huracan", "Aventador"],
+    "Hyundai": ["Tucson", "Santa Fe", "IONIQ 5"],
+    "Jaguar": ["F-Type", "F-Pace"],
+    "Jeep": ["Renegade", "Compass", "Wrangler"],
+    "Kia": ["Sportage", "EV6", "Niro"],
+    "Lamborghini": ["Urus", "Huracan"],
     "Land Rover": ["Defender", "Range Rover", "Evoque", "Velar"],
-    "Lexus": ["UX", "NX", "RX"],
-    "Maserati": ["Ghibli", "Levante", "MC20", "Grecale"],
+    "Lexus": ["NX", "RX", "UX"],
+    "Maserati": ["Ghibli", "Levante", "MC20"],
     "Mazda": ["MX-5", "CX-30", "CX-5"],
-    "McLaren": ["720S", "570S", "Artura"],
-    "Mercedes": ["Classe A", "Classe C", "Classe E", "CLA", "GLA", "GLC", "GLE", "Classe G", "AMG GT"],
-    "Mini": ["Cooper", "Cooper S", "Clubman", "Countryman"],
-    "Nissan": ["Juke", "Qashqai", "X-Trail", "GTR"],
-    "Opel": ["Corsa", "Astra", "Mokka"],
-    "Peugeot": ["208", "308", "408", "508", "2008", "3008", "5008", "Rifter"],
+    "McLaren": ["720S", "Artura", "GT"],
+    "Mercedes": ["Classe A", "Classe C", "CLA", "GLA", "GLC", "GLE", "G63", "AMG GT"],
+    "Mini": ["Cooper", "Countryman"],
+    "Nissan": ["Qashqai", "Juke", "GTR"],
+    "Opel": ["Corsa", "Mokka"],
+    "Peugeot": ["208", "308", "2008", "3008", "5008", "408"],
     "Porsche": ["911", "718 Cayman", "Macan", "Cayenne", "Taycan", "Panamera"],
-    "Renault": ["Clio", "Captur", "Megane", "Arkana", "Austral", "Espace", "Rafale", "Zoe", "Twingo"],
+    "Renault": ["Clio", "Captur", "Megane", "Arkana", "Austral", "Espace"],
     "Rolls-Royce": ["Phantom", "Cullinan"],
-    "Seat": ["Ibiza", "Leon", "Ateca", "Arona"],
-    "Skoda": ["Fabia", "Octavia", "Superb", "Kamiq", "Kodiaq", "Enyaq"],
-    "Smart": ["Fortwo", "#1", "#3"],
-    "Suzuki": ["Swift", "Ignis", "Vitara", "Jimny"],
-    "Tesla": ["Model 3", "Model Y", "Model S", "Model X"],
-    "Toyota": ["Yaris", "Corolla", "C-HR", "RAV4", "Land Cruiser", "Supra"],
-    "Volkswagen": ["Polo", "Golf", "T-Roc", "Tiguan", "Passat", "Touareg", "ID.3", "ID.4"],
-    "Volvo": ["XC40", "XC60", "XC90", "C40"]
+    "Seat": ["Ibiza", "Leon", "Ateca"],
+    "Skoda": ["Fabia", "Octavia", "Kodiaq"],
+    "Smart": ["Fortwo", "#1"],
+    "Suzuki": ["Swift", "Jimny"],
+    "Tesla": ["Model 3", "Model Y", "Model S"],
+    "Toyota": ["Yaris", "Corolla", "RAV4", "C-HR"],
+    "Volkswagen": ["Polo", "Golf", "Tiguan", "T-Roc", "ID.3"],
+    "Volvo": ["XC40", "XC60", "XC90"]
 }
 
-# --- 2. IMAGES HD STABLES (Wikimedia Commons) ---
-# Ces liens sont directs et ne cassent pas.
 IMAGES_HD = {
     "Porsche": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Porsche_992_GT3_at_IAA_2021_1X7A0322.jpg/800px-Porsche_992_GT3_at_IAA_2021_1X7A0322.jpg",
     "Ferrari": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Ferrari_SF90_Stradale_IMG_5076.jpg/800px-Ferrari_SF90_Stradale_IMG_5076.jpg",
@@ -67,25 +65,21 @@ IMAGES_HD = {
     "Alpine": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Alpine_A110_Premiere_Edition_2017_%2837330560274%29.jpg/800px-Alpine_A110_Premiere_Edition_2017_%2837330560274%29.jpg"
 }
 
-# --- PARAMETRES ---
 CARBURANTS = ["Essence", "Diesel", "Hybride", "Électrique"]
-BOITES = ["Automatique", "Manuelle", "Séquentielle"]
-COULEURS = ["Noir", "Gris Nardo", "Blanc Glacier", "Bleu Nuit", "Rouge", "Vert Anglais", "Jaune", "Gris Argent"]
-VILLES = ["Paris 16e", "Lyon", "Marseille", "Bordeaux", "Lille", "Monaco", "Genève", "Luxembourg", "Cannes", "Nice"]
-OPTIONS_LIST = ["Toit Panoramique", "Cuir Nappa", "Caméra 360°", "CarPlay", "Son Burmester", "Sièges Ventilés", "Pack Carbone", "Matrix LED", "Affichage Tête Haute", "Suspension Pneumatique"]
+BOITES = ["Automatique", "Manuelle"]
+COULEURS = ["Noir", "Gris", "Blanc", "Bleu", "Rouge", "Vert", "Jaune"]
+VILLES = ["Paris", "Lyon", "Bordeaux", "Marseille", "Lille", "Monaco", "Genève", "Nice"]
+OPTIONS_LIST = ["Toit Pano", "Cuir", "Caméra 360", "CarPlay", "Son Burmester", "Sièges Sport", "Matrix LED"]
 
 def init_csv():
     with open(CSV_FILE, mode='w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
+        # VOICI LA LIGNE IMPORTANTE QUI AJOUTE 'CHEVAUX'
         writer.writerow(["id", "marque", "modele", "titre", "prix", "cote_argus", "km", "annee", "ville", "distance", "url", "img_url", "options", "carburant", "boite", "couleur", "chevaux", "date_scrape"])
 
 def get_image(marque):
-    # 1. Si on a une image HD officielle, on la prend
     if marque in IMAGES_HD:
         return IMAGES_HD[marque]
-    
-    # 2. Sinon, on utilise LoremFlickr (générateur aléatoire mais réel)
-    # On met un lock aléatoire pour avoir des voitures différentes à chaque ligne
     rand_id = random.randint(1, 9999)
     keyword = marque.lower().replace(" ", "")
     return f"https://loremflickr.com/640/480/{keyword},car?lock={rand_id}"
@@ -94,35 +88,30 @@ def generer_voiture():
     marque = random.choice(list(DB_AUTO.keys()))
     modele = random.choice(DB_AUTO[marque])
     
-    # Prix de base
+    prix_base = 30000
+    chevaux = random.randint(110, 200) # Base puissance
+    
     if marque in ["Ferrari", "Lamborghini", "Bugatti", "Rolls-Royce", "McLaren"]:
         prix_base = 250000
         chevaux = random.randint(500, 1000)
     elif marque in ["Porsche", "Aston Martin", "Bentley"]:
         prix_base = 110000
         chevaux = random.randint(350, 650)
-    elif marque in ["Audi", "BMW", "Mercedes", "Land Rover", "Maserati"]:
-        prix_base = 60000
-        chevaux = random.randint(200, 500)
-    else:
-        prix_base = 25000
-        chevaux = random.randint(90, 200)
+    elif marque in ["Audi", "BMW", "Mercedes", "Land Rover"]:
+        prix_base = 55000
+        chevaux = random.randint(180, 500)
     
     annee = random.randint(2017, 2024)
-    km = random.randint(2000, 140000)
+    km = random.randint(1000, 150000)
     
     age = 2025 - annee
     decote = (age * 0.08) + (km / 150000 * 0.15)
     cote = int(prix_base * (1 - decote))
     if cote < 5000: cote = 5000
     
-    # Prix vendeur
     prix = int(cote * random.uniform(0.8, 1.15))
-    
     distance = random.randint(5, 500)
     opts = " | ".join(random.sample(OPTIONS_LIST, k=random.randint(2, 4)))
-    
-    # IMAGE
     img_url = get_image(marque)
     
     return [
@@ -133,17 +122,17 @@ def generer_voiture():
         "https://www.leboncoin.fr", 
         img_url, opts,
         random.choice(CARBURANTS), random.choice(BOITES), random.choice(COULEURS),
-        str(chevaux),
+        str(chevaux), # ICI ON ÉCRIT LES CHEVAUX DANS LE FICHIER
         datetime.now().strftime("%Y-%m-%d")
     ]
 
 def run_simulation():
-    print("🚀 Génération PHOTO RÉALISTE en cours...")
+    print("🚀 RÉPARATION DES DONNÉES EN COURS...")
     init_csv()
     with open(CSV_FILE, mode='a', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         for _ in range(500): writer.writerow(generer_voiture())
-    print("✅ Terminé : 500 véhicules générés.")
+    print("✅ Terminé : Fichier annonces.csv réparé.")
 
 if __name__ == "__main__":
     run_simulation()
