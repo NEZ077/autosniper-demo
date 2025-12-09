@@ -20,7 +20,7 @@ REAL_DATA = [
         "options": "Toit Pano | Akrapovic | Bang & Olufsen", "status": "Clean"
     },
     {
-        "file": "Ferrari Roma V8 - Française - Malus Payé.jpg", 
+        "file": "Ferrari Roma V8.jpg", 
         "marque": "Ferrari", "modele": "Roma", "titre": "Ferrari Roma V8 - Malus Payé",
         "prix": 205000, "cote": 215000, "km": 8500, "annee": 2022,
         "ville": "Cannes", "cv": "620", "carb": "Essence", "boite": "F1", "couleur": "Gris",
