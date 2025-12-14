@@ -1,108 +1,204 @@
-import csv
+import pandas as pd
+import os
+import glob
+import random
 from datetime import datetime
+import re
 
-CSV_FILE = "annonces.csv"
+# --- CONFIGURATION ---
+# Mets tous tes fichiers CSV (LBC, AutoScout...) dans ce dossier
+IMPORT_FOLDER = "imports"   
+OUTPUT_FILE = "annonces.csv"
 
-# --- TES 10 VOITURES (Modifie les titres/prix selon tes photos) ---
-REAL_DATA = [
-    {
-        "file": "Porsche 911 (992) GT3 Clubsport - 4.0L Atmo.jpg", # Ta photo 1.jpg
-        "marque": "Porsche", "modele": "911 GT3", "titre": "Porsche 911 (992) GT3 - Clubsport",
-        "prix": 225000, "cote": 245000, "km": 12500, "annee": 2022,
-        "ville": "Monaco", "cv": "510", "carb": "Essence", "boite": "PDK", "couleur": "Bleu",
-        "options": "Pack Clubsport | Lift System | Céramique", "status": "Pépite"
-    },
-    {
-        "file": "Audi RS6 Avant C8.jpg", # Ta photo 2.jpg
-        "marque": "Audi", "modele": "RS6", "titre": "Audi RS6 Avant C8 - Full Black",
-        "prix": 118000, "cote": 129000, "km": 42000, "annee": 2021,
-        "ville": "Paris", "cv": "600", "carb": "Essence", "boite": "Auto", "couleur": "Noir",
-        "options": "Toit Pano | Akrapovic | Bang & Olufsen", "status": "Clean"
-    },
-    {
-        "file": "Ferrari Roma V8.jpg", 
-        "marque": "Ferrari", "modele": "Roma", "titre": "Ferrari Roma V8 - Malus Payé",
-        "prix": 205000, "cote": 215000, "km": 8500, "annee": 2022,
-        "ville": "Cannes", "cv": "620", "carb": "Essence", "boite": "F1", "couleur": "Gris",
-        "options": "Sièges Daytona | Caméra 360 | Écussons", "status": "Clean"
-    },
-    {
-        "file": "Mercedes Classe G 63 AMG - Manufaktur.jpg",
-        "marque": "Mercedes", "modele": "G63 AMG", "titre": "Mercedes Classe G 63 AMG",
-        "prix": 185000, "cote": 195000, "km": 25000, "annee": 2021,
-        "ville": "Lyon", "cv": "585", "carb": "Essence", "boite": "Auto", "couleur": "Noir Mat",
-        "options": "Pack Nuit | Sièges Massants | Attelage", "status": "Clean"
-    },
-    {
-        "file": "BMW M4 Competition xDrive - Pack Carbone.jpg",
-        "marque": "BMW", "modele": "M4", "titre": "BMW M4 Competition xDrive",
-        "prix": 89000, "cote": 96000, "km": 18000, "annee": 2022,
-        "ville": "Lille", "cv": "510", "carb": "Essence", "boite": "Auto", "couleur": "Jaune",
-        "options": "Sièges Carbone | Laser Light | HUD", "status": "Pépite"
-    },
-    {
-        "file": "Lamborghini Urus - 4.0 V8 - Config Full Black.jpg",
-        "marque": "Lamborghini", "modele": "Urus", "titre": "Lamborghini Urus 4.0 V8",
-        "prix": 260000, "cote": 255000, "km": 35000, "annee": 2020,
-        "ville": "Nice", "cv": "650", "carb": "Essence", "boite": "Auto", "couleur": "Jaune",
-        "options": "Jantes 23 | Toit Ouvrant | Full ADAS", "status": "Clean"
-    },
-    {
-        "file": "Peugeot 308 III SW GT - Hybride 225.jpg",
-        "marque": "Peugeot", "modele": "308", "titre": "Peugeot 308 SW GT Hybride",
-        "prix": 32000, "cote": 36000, "km": 15000, "annee": 2023,
-        "ville": "Nantes", "cv": "225", "carb": "Hybride", "boite": "Auto", "couleur": "Vert",
-        "options": "Matrix LED | Caméra 360 | Drive Assist", "status": "Pépite"
-    },
-    {
-        "file": "Alpine A110 Première Édition - Numérotée.jpg",
-        "marque": "Alpine", "modele": "A110", "titre": "Alpine A110 Première Édition",
-        "prix": 62000, "cote": 65000, "km": 40000, "annee": 2018,
-        "ville": "Dieppe", "cv": "252", "carb": "Essence", "boite": "Auto", "couleur": "Bleu",
-        "options": "Échappement Sport | Gros Freins | Focal", "status": "Clean"
-    },
-    {
-        "file": "Porsche Macan S - 1er Loyer Majoré (ATTENTION).jpg",
-        "marque": "Porsche", "modele": "Macan", "titre": "Porsche Macan S Diesel",
-        "prix": 9900, "cote": 65000, "km": 80000, "annee": 2019,
-        "ville": "Bordeaux", "cv": "258", "carb": "Diesel", "boite": "PDK", "couleur": "Gris",
-        "options": "PASM | Toit Ouvrant | Jantes RS Spyder", "status": "Leasing"
-    },
-    {
-        "file": "VW Golf 8 R - 320ch - Performance - Moteur HS.jpg",
-        "marque": "Volkswagen", "modele": "Golf R", "titre": "VW Golf 8 R Performance",
-        "prix": 18000, "cote": 45000, "km": 15000, "annee": 2022,
-        "ville": "Strasbourg", "cv": "320", "carb": "Essence", "boite": "DSG", "couleur": "Bleu",
-        "options": "Akrapovic | Drift Mode | Cuir Nappa", "status": "Accidentée"
-    }
-]
-
-def init_csv():
-    with open(CSV_FILE, mode='w', newline='', encoding='utf-8') as f:
-        writer = csv.writer(f)
-        writer.writerow(["id", "marque", "modele", "titre", "prix", "cote_argus", "km", "annee", "ville", "distance", "url", "img_url", "options", "carburant", "boite", "couleur", "chevaux", "status", "source", "date_scrape"])
-
-def run_injection():
-    print("📸 Injection de tes PHOTOS PERSONNELLES...")
-    init_csv()
+def clean_power(valeur):
+    if pd.isna(valeur): return 0
+    s = str(valeur).lower().replace(',', '.')
+    # On extrait le chiffre
+    match = re.search(r"(\d+[\.]?\d*)", s)
+    if not match: return 0
+    num = float(match.group(1))
     
-    with open(CSV_FILE, mode='a', newline='', encoding='utf-8') as f:
-        writer = csv.writer(f)
+    # Si c'est des kW (souvent le cas sur AutoScout), on convertit
+    if "kw" in s:
+        return int(num * 1.36)
+    
+    # Sinon on retourne le chiffre tel quel (supposé être des ch)
+    return int(num)
+
+def clean_price(price_str):
+    """Nettoie les prix (enlève €, les points, les virgules...)"""
+    if pd.isna(price_str): return 0
+    clean = str(price_str).replace("€", "").replace(".", "").replace(",", "").replace("-", "").strip()
+    try: return int(clean)
+    except: return 0
+
+def detecter_et_convertir(filepath):
+    """Lit un CSV et devine si c'est Leboncoin ou AutoScout"""
+    try:
+        # On essaie de lire avec différents encodages pour éviter les erreurs
+        try:
+            df = pd.read_csv(filepath, encoding='utf-8')
+        except:
+            df = pd.read_csv(filepath, encoding='latin-1')
+    except Exception as e:
+        print(f"❌ Erreur lecture {filepath}: {e}")
+        return []
+
+    annonces = []
+    cols = " ".join(df.columns)
+    filename = os.path.basename(filepath)
+
+    # --- CAS 1 : AUTOSCOUT24 (Format 'pageProps') ---
+    if "pageProps.listings" in cols:
+        print(f"   🔹 {filename} : Format AUTOSCOUT24 détecté")
         
-        for i, car in enumerate(REAL_DATA):
-            row = [
-                f"perso-{i+1}",
-                car['marque'], car['modele'], car['titre'],
-                str(car['prix']), str(car['cote']), str(car['km']), str(car['annee']),
-                car['ville'], "10", 
-                "https://www.leboncoin.fr", 
-                car['file'], # Ici on met juste "1.jpg"
-                car['options'], car['carb'], car['boite'], car['couleur'], car['cv'],
-                car['status'], "LeBonCoin", datetime.now().strftime("%Y-%m-%d")
-            ]
-            writer.writerow(row)
+        # Trouver le nombre max de colonnes listings
+        max_idx = 0
+        for c in df.columns:
+            if "pageProps.listings." in c:
+                try: max_idx = max(max_idx, int(c.split(".")[2]))
+                except: pass
+        
+        for _, row in df.iterrows():
+            for i in range(max_idx + 1):
+                p = f"pageProps.listings.{i}"
+                if f"{p}.id" not in row or pd.isna(row[f"{p}.id"]): continue
+                
+                # Extraction
+                prix = clean_price(row.get(f"{p}.price.priceFormatted", 0))
+                url_raw = row.get(f"{p}.url", "")
+                # Correction lien relatif AS24
+                lien = f"https://www.autoscout24.fr{url_raw}" if str(url_raw).startswith("/") else url_raw
+                
+                marque = row.get(f"{p}.vehicle.make", "Inconnue")
+                modele = row.get(f"{p}.vehicle.model", "Inconnu")
+                version = row.get(f"{p}.vehicle.modelVersionInput", "")
+                
+                # Image
+                img = row.get(f"{p}.images.0", "")
+                if pd.isna(img): img = "https://via.placeholder.com/400x300?text=No+Image"
+
+                annonces.append({
+                    "id": f"as-{row.get(f'{p}.id')}",
+                    "marque": marque,
+                    "modele": modele,
+                    "titre": f"{marque} {modele} {version}".strip(),
+                    "prix": prix,
+                    "km": row.get(f"{p}.vehicle.mileageInKm", 0),
+                    "annee": str(row.get(f"{p}.tracking.firstRegistration", "2020")).split("/")[-1],
+                    "img_url": img,
+                    "lien_annonce": lien,
+                    "description": f"Import AutoScout. {row.get(f'{p}.vehicle.fuel', '')}, {row.get(f'{p}.vehicle.transmission', '')}. {version}",
+                    "source": "AutoScout24",
+                    "options": "Voir annonce détaillée", 
+                    "carburant": row.get(f"{p}.vehicle.fuel", "N/C"), 
+                    "boite": row.get(f"{p}.vehicle.transmission", "N/C"), 
+                    "chevaux": clean_power(row.get(f"{p}.vehicle.hp") or row.get(f"{p}.vehicle.rawPower")), 
+                    "couleur": "N/C", 
+                    "ville": row.get(f"{p}.location.city", "Europe"),
+                    "temps": f"{random.randint(1, 12)}h"
+                })
+
+    # --- CAS 2 : LEBONCOIN (Format 'subject' + 'attributes') ---
+    elif "subject" in df.columns: # Verification simplifiée
+        print(f"   🔸 {filename} : Format LEBONCOIN détecté")
+        
+        for index, row in df.iterrows():
+            attrs = {}
+            # Extraction dynamique des attributs LBC (attributes.X.key / value)
+            for col in df.columns:
+                if col.startswith("attributes.") and col.endswith(".key"):
+                    try:
+                        idx = col.split(".")[1]
+                        key = row[col]
+                        # On cherche la valeur lisible (label) ou la valeur brute
+                        val = row.get(f"attributes.{idx}.value_label")
+                        if pd.isna(val): val = row.get(f"attributes.{idx}.value")
+                        attrs[key] = val
+                    except: pass
             
-    print("✅ Terminé. Tes 10 photos sont liées.")
+            # Image LBC
+            img = "https://via.placeholder.com/400x300?text=No+Photo"
+            if "images.urls_large.0" in row and pd.notna(row["images.urls_large.0"]): img = row["images.urls_large.0"]
+            elif "images.urls.0" in row and pd.notna(row["images.urls.0"]): img = row["images.urls.0"]
+
+            annonces.append({
+                "id": f"lbc-{row.get('list_id', random.randint(10000,99999))}",
+                "marque": attrs.get("brand", "Inconnue"),
+                "modele": attrs.get("model", "Inconnu"),
+                "titre": row.get("subject", "Annonce LBC"),
+                "prix": int(row.get("price.0", 0)) if pd.notna(row.get("price.0")) else 0,
+                "km": str(attrs.get("mileage", "0")).replace(" ", ""),
+                "annee": str(attrs.get("regdate", "2020")),
+                "img_url": img,
+                "lien_annonce": row.get("url", ""),
+                "description": str(row.get("body", "")).replace("\n", " ")[:800],
+                "source": "LeBonCoin",
+                "options": "Voir description", 
+                "carburant": attrs.get("fuel", "N/C"), 
+                "boite": attrs.get("gearbox", "N/C"), 
+                "chevaux": clean_power(attrs.get("horsepower") or attrs.get("fiscal_power")), 
+                "couleur": attrs.get("color", "N/C"), 
+                "ville": row.get("location.city", "France"),
+                "temps": f"{random.randint(1, 24)}h"
+            })
+    
+    else:
+        print(f"   ⚠️ {filename} : Format inconnu ou colonnes manquantes.")
+
+    return annonces
+
+def run_scraper():
+    print("🏭 USINE D'IMPORTATION ACTIVÉE...")
+    print(f"📂 Recherche de fichiers CSV dans '{IMPORT_FOLDER}'...")
+    
+    # Création du dossier imports s'il n'existe pas
+    if not os.path.exists(IMPORT_FOLDER):
+        os.makedirs(IMPORT_FOLDER)
+        print(f"✅ Dossier '{IMPORT_FOLDER}' créé. Glisse tes CSV dedans !")
+        return
+
+    all_files = glob.glob(os.path.join(IMPORT_FOLDER, "*.csv"))
+    if not all_files:
+        print(f"⚠️ Aucun fichier CSV trouvé dans '{IMPORT_FOLDER}'.")
+        return
+
+    all_data = []
+    
+    # 1. Traitement de tous les fichiers
+    for f in all_files:
+        all_data.extend(detecter_et_convertir(f))
+        
+    # 2. Nettoyage et Fusion
+    if all_data:
+        df = pd.DataFrame(all_data)
+        
+        # Nettoyage types numériques
+        df['prix'] = pd.to_numeric(df['prix'], errors='coerce').fillna(0).astype(int)
+        
+        # NOTE : La cote Argus "intelligente" est calculée dans app.py
+        # Ici on met juste une valeur par défaut pour éviter les bugs
+        df['cote_argus'] = (df['prix'] * 1.1).astype(int) 
+        df['status'] = "Clean"
+        df['distance'] = "10"
+        df['date_scrape'] = datetime.now().strftime("%Y-%m-%d")
+        
+        # Sélection finale des colonnes pour app.py
+        cols_finales = ["id", "marque", "modele", "titre", "prix", "cote_argus", "km", "annee", 
+                        "ville", "distance", "url", "img_url", "options", "carburant", "boite", 
+                        "couleur", "chevaux", "status", "source", "temps", "lien_annonce", 
+                        "description", "date_scrape"]
+        
+        # Ajout colonnes manquantes vides
+        for c in cols_finales:
+            if c not in df.columns: df[c] = ""
+            
+        # Sauvegarde
+        df[cols_finales].to_csv(OUTPUT_FILE, index=False, encoding='utf-8-sig')
+        print(f"\n✅ SUCCÈS ! {len(df)} annonces injectées dans {OUTPUT_FILE}")
+        print("👉 Lance 'streamlit run app.py' pour voir le résultat.")
+    else:
+        print("❌ Aucune annonce valide récupérée.")
 
 if __name__ == "__main__":
-    run_injection()
+    run_scraper()
